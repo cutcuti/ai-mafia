@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGame, createRng, drive, makeConfig } from '@ai-mafia/engine';
 import type { Controller, GameConfig, GameEvent, Outcome, PresetName, Responder, Role } from '@ai-mafia/engine';
@@ -202,21 +202,44 @@ export async function runGame(
 
 export const runDir = (outDir: string, runId: string) => join(outDir, runId);
 
+/** Atomic write (temp file + rename): a crash never leaves a half-written game for a resume to trip over. */
 export function writeRecord(outDir: string, r: GameRecord): string {
   const dir = runDir(outDir, r.runId);
   mkdirSync(dir, { recursive: true });
   const file = join(dir, `${r.gameId}.json`);
-  writeFileSync(file, JSON.stringify(r));
+  const tmp = `${file}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify(r));
+  renameSync(tmp, file);
   return file;
+}
+
+/** A finished game already on disk for this spec, if any. Throws if the run id was reused with different options. */
+export function existingRecord(outDir: string, runId: string, spec: GameSpec): GameRecord | undefined {
+  const file = join(runDir(outDir, runId), `${spec.gameId}.json`);
+  if (!existsSync(file)) return undefined;
+  let r: GameRecord;
+  try {
+    r = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return undefined; // unreadable: replay the game
+  }
+  if (r?.schema !== 1 || r.gameId !== spec.gameId || !r.outcome) return undefined;
+  if (r.seed !== spec.seed || r.preset !== spec.preset || r.seats.map((s) => s.modelId).join() !== spec.seatModels.join()) {
+    throw new Error(`run "${runId}" already has ${spec.gameId} with different settings — pick a new --run-id`);
+  }
+  return r;
 }
 
 export interface BenchResult {
   runId: string;
-  /** Finished games, in plan order. */
+  /** All finished games of the run (resumed + new), in plan order. */
   records: GameRecord[];
   planned: number;
+  /** Games already on disk from an earlier invocation (skipped, not replayed). */
+  resumed: number;
   /** Games never launched because of the budget. */
   skippedForBudget: number;
+  /** New spend in this invocation only. */
   spentUsd: number;
 }
 
@@ -247,12 +270,22 @@ export async function runBench(o: BenchOptions): Promise<BenchResult> {
   const concurrency = Math.max(1, o.concurrency ?? 4);
   const budget = o.budgetUsd ?? Infinity;
 
-  let spent = 0;
-  let finishedCost = 0;
-  let finished = 0;
-  let next = 0;
-  let stopped = false;
+  // Resume: games already on disk are kept and not replayed (BRD §8.2).
   const done = new Map<number, GameRecord>();
+  specs.forEach((s, i) => {
+    const r = existingRecord(outDir, runId, s);
+    if (r) done.set(i, r);
+  });
+  const resumed = done.size;
+  const todo = specs.map((_, i) => i).filter((i) => !done.has(i));
+
+  let spent = 0; // this invocation only — the budget applies to new spend
+  let newCost = 0;
+  // estimates use every finished game, including resumed ones
+  let finished = resumed;
+  let finishedCost = [...done.values()].reduce((a, r) => a + r.costUsd, 0);
+  let next = 0; // index into todo
+  let stopped = false;
   const inFlight = new Map<number, number>(); // spec index → live spend
 
   const expected = (i: number) => (finished ? finishedCost / finished : estimateGameCostUsd(specs[i]));
@@ -267,15 +300,15 @@ export async function runBench(o: BenchOptions): Promise<BenchResult> {
   const decide = (i: number): 'go' | 'wait' | 'stop' => {
     if (stopped || spent >= budget) return 'stop';
     if (finished === 0 && inFlight.size === 0) return 'go'; // one probe game always runs so costs get measured
-    let committed = finishedCost;
+    let committed = newCost;
     for (const [j, live] of inFlight) committed += Math.max(live, expected(j));
     if (committed + expected(i) <= budget) return 'go';
     return inFlight.size ? 'wait' : 'stop';
   };
 
   async function worker() {
-    while (next < specs.length) {
-      const d = decide(next);
+    while (next < todo.length) {
+      const d = decide(todo[next]);
       if (d === 'stop') {
         stopped = true;
         notify();
@@ -285,7 +318,7 @@ export async function runBench(o: BenchOptions): Promise<BenchResult> {
         await new Promise<void>((r) => wake.push(r));
         continue;
       }
-      const i = next++;
+      const i = todo[next++];
       inFlight.set(i, 0);
       const r = await runGame(specs[i], o, runId, (c) => {
         spent += c.costUsd;
@@ -296,13 +329,14 @@ export async function runBench(o: BenchOptions): Promise<BenchResult> {
       done.set(i, r);
       finished++;
       finishedCost += r.costUsd;
+      newCost += r.costUsd;
       o.onGame?.(r, done.size, specs.length, spent);
       notify();
     }
     notify();
   }
-  await Promise.all(Array.from({ length: Math.min(concurrency, specs.length) }, worker));
+  await Promise.all(Array.from({ length: Math.min(concurrency, todo.length) }, worker));
 
   const records = [...done.entries()].sort((a, b) => a[0] - b[0]).map(([, r]) => r);
-  return { runId, records, planned: specs.length, skippedForBudget: specs.length - records.length, spentUsd: spent };
+  return { runId, records, planned: specs.length, resumed, skippedForBudget: specs.length - records.length, spentUsd: spent };
 }

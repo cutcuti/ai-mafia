@@ -11,6 +11,8 @@ export interface ReportInput {
   records: readonly GameRecord[];
   planned: number;
   skippedForBudget: number;
+  /** Games carried over from an earlier invocation of the same run. */
+  resumed?: number;
   /** ISO date for the header; passed in so report generation stays pure. */
   generatedAt: string;
 }
@@ -54,7 +56,7 @@ export function buildReport(input: ReportInput): ReportResult {
   md.push('');
   md.push(`${who} · format \`${o.format}\` · preset \`${o.preset}\` · prompt \`${promptVersions}\` · personas \`${o.personaMode ?? 'default'}\`${o.dryRun ? ' · **DRY RUN (mocked models — numbers are not real)**' : ''}`);
   md.push('');
-  md.push(`Generated ${input.generatedAt}. ${n} of ${input.planned} planned games played${input.skippedForBudget ? ` (${input.skippedForBudget} skipped: budget ${usd(o.budgetUsd ?? NaN)} reached)` : ''}; seeds ${seeds.length ? `${Math.min(...seeds)}–${Math.max(...seeds)}` : '—'}. Total cost ${usd(cost)}.`);
+  md.push(`Generated ${input.generatedAt}. ${n} of ${input.planned} planned games played${input.resumed ? ` (${input.resumed} resumed from an earlier invocation)` : ''}${input.skippedForBudget ? ` (${input.skippedForBudget} skipped: budget ${usd(o.budgetUsd ?? NaN)} reached)` : ''}; seeds ${seeds.length ? `${Math.min(...seeds)}–${Math.max(...seeds)}` : '—'}. Total cost ${usd(cost)}.`);
   md.push('');
 
   md.push('## Outcomes');

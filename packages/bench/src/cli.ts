@@ -102,8 +102,10 @@ const report = buildReport({
   records: result.records,
   planned: result.planned,
   skippedForBudget: result.skippedForBudget,
+  resumed: result.resumed,
   generatedAt: new Date().toISOString(),
 });
+if (result.resumed) console.log(`resumed: ${result.resumed} games already on disk were kept; this invocation spent $${result.spentUsd.toFixed(4)}`);
 const file = writeReport(values.reports!, result.runId, report.markdown);
 console.log(`\nrun ${result.runId}`);
 for (const line of report.summary) console.log(line);
