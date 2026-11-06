@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { PRESET_NAMES, isPreset } from '@ai-mafia/engine';
 import { getModel } from '@ai-mafia/agents';
+import { buildReport, writeReport } from './report.js';
 import { RANDOM, defaultRunId, runBench, type BenchOptions, type Format } from './runner.js';
 
 const HELP = `pnpm bench -- --format <h2h|ffa|self> [options]
@@ -15,6 +16,7 @@ const HELP = `pnpm bench -- --format <h2h|ffa|self> [options]
   --neutral           neutral personas (less variance)
   --run-id <id>       output folder name                                      [default derived from options]
   --out <dir>         games root                                              [default games]
+  --reports <dir>     where reports/<runId>.md goes                           [default reports]
   --dry-run           mock every model offline (no keys, no cost)
 models: registry ids from packages/agents/src/models.config.ts, or "${RANDOM}"`;
 
@@ -34,6 +36,7 @@ const { values } = parseArgs({
     'budget-usd': { type: 'string' },
     'run-id': { type: 'string' },
     out: { type: 'string', default: 'games' },
+    reports: { type: 'string', default: 'reports' },
     'dry-run': { type: 'boolean', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
@@ -93,8 +96,16 @@ try {
 }
 process.stdout.write('\n');
 if (result.skippedForBudget) console.log(`budget reached: ${result.skippedForBudget} of ${result.planned} games not launched`);
-const tally = { town: 0, mafia: 0, draw: 0 };
-for (const r of result.records) tally[r.outcome]++;
-const cost = result.spentUsd;
-console.log(`run ${result.runId}: ${result.records.length} games · town ${tally.town} · mafia ${tally.mafia} · draw ${tally.draw} · $${cost.toFixed(4)}${opts.dryRun ? ' (simulated)' : ''}`);
-console.log(`games → ${opts.outDir}/${result.runId}/`);
+const report = buildReport({
+  runId: result.runId,
+  options: opts,
+  records: result.records,
+  planned: result.planned,
+  skippedForBudget: result.skippedForBudget,
+  generatedAt: new Date().toISOString(),
+});
+const file = writeReport(values.reports!, result.runId, report.markdown);
+console.log(`\nrun ${result.runId}`);
+for (const line of report.summary) console.log(line);
+console.log(`\ngames  → ${opts.outDir}/${result.runId}/`);
+console.log(`report → ${file}`);
