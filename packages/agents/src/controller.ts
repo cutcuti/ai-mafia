@@ -1,5 +1,5 @@
 import type { AgentContext, InputRequest, InputResponse, Responder } from '@ai-mafia/engine';
-import { chooseTask, speakTask, systemPrompt, userPrompt } from './prompts.js';
+import { systemPrompt, userPrompt } from './prompts.js';
 import type { Provider, ToolSpec } from './providers/types.js';
 
 /** Anything that plays a seat (BRD §7.1). Structurally the engine's Responder. */
@@ -61,11 +61,10 @@ export class ModelController implements Controller {
   ) {}
 
   async respond(ctx: AgentContext, req: InputRequest): Promise<InputResponse> {
-    const task = req.kind === 'speak' ? speakTask(req.channel) : chooseTask(req.action);
     const res = await this.provider.complete({
       model: this.opts.model,
       system: systemPrompt(ctx),
-      user: userPrompt(ctx, task),
+      user: userPrompt(ctx, req),
       tool: toolFor(ctx, req),
       maxOutputTokens: this.opts.maxOutputTokens ?? 600,
     });

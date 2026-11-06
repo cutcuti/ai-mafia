@@ -50,6 +50,6 @@ test('transcript uses names and never renders spectator events', () => {
       { gameId: 'g', seq: 1, day: 1, phase: 'day', type: 'thought', visibility: { kind: 'spectator' }, actorSeatId: 's2', text: 'SECRET', createdAt: '' },
     ],
   });
-  assert.match(t, /Omar: "hi"/);
+  assert.match(t, /<speech from="Omar">hi<\/speech>/);
   assert.doesNotMatch(t, /SECRET/);
 });

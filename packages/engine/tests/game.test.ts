@@ -81,6 +81,8 @@ test('I5: garbage, throwing and null responses fall back and never crash', async
 test('setup: public roster, private roles, mafia team reveal', () => {
   const s = createGame(makeConfig({ seed: 1 }));
   assert.equal(s.events[0].type, 'game_start');
+  assert.deepEqual(s.events[0].payload!.roles, { mafia: 2, detective: 1, doctor: 1, villager: 2 });
+  assert.equal(s.events[0].payload!.maxDays, 8);
   const reveals = s.events.filter((e) => e.type === 'role_reveal');
   assert.equal(reveals.length, 6);
   for (const r of reveals) assert.equal(r.visibility.kind, 'seat');

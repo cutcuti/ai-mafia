@@ -374,7 +374,13 @@ export function createGame(config: GameConfig): GameState {
     version: 0,
   };
   emit(d, 'game_start', PUBLIC, `Players at the table: ${seats.map((s) => s.name).join(', ')}`, {
-    payload: { seats: seats.map((s) => ({ id: s.id, name: s.name, persona: s.persona })) },
+    // the table setup is public knowledge, as in real Mafia
+    payload: {
+      seats: seats.map((s) => ({ id: s.id, name: s.name, persona: s.persona })),
+      roles: { ...config.roles },
+      rounds: config.rounds,
+      maxDays: config.maxDays,
+    },
   });
   for (const s of seats) {
     emit(d, 'role_reveal', only(s.id), `You are ${s.name}. Your secret role is ${s.role.toUpperCase()}.`, { payload: { role: s.role } });

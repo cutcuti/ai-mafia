@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { AgentContext, InputRequest, InputResponse, Responder } from '@ai-mafia/engine';
-import { chooseTask, speakTask, systemPrompt, userPrompt } from './prompts.js';
+import { systemPrompt, userPrompt } from './prompts.js';
 
 /**
  * Claude-backed player. Forced tool use, so every reply is structured
@@ -19,7 +19,7 @@ export class ClaudeController implements Responder {
 
   async respond(ctx: AgentContext, req: InputRequest): Promise<InputResponse> {
     if (req.kind === 'speak') {
-      const input = await this.call(ctx, speakTask(req.channel), {
+      const input = await this.call(ctx, userPrompt(ctx, req), {
         name: 'speak',
         description: 'Say something to the table (or to your mafia teammate at night).',
         input_schema: {
@@ -35,7 +35,7 @@ export class ClaudeController implements Responder {
     }
     const toName = new Map(ctx.roster.map((r) => [r.seatId, r.name]));
     const toId = new Map(ctx.roster.map((r) => [r.name, r.seatId]));
-    const input = await this.call(ctx, chooseTask(req.action), {
+    const input = await this.call(ctx, userPrompt(ctx, req), {
       name: req.action,
       description: `Pick a target for: ${req.action}.`,
       input_schema: {
@@ -50,12 +50,12 @@ export class ClaudeController implements Responder {
     return { kind: 'choose', thought: String(input.thought ?? ''), target: toId.get(String(input.target)) ?? '' };
   }
 
-  private async call(ctx: AgentContext, task: string, tool: Anthropic.Tool): Promise<Record<string, unknown>> {
+  private async call(ctx: AgentContext, user: string, tool: Anthropic.Tool): Promise<Record<string, unknown>> {
     const res = await this.client.messages.create({
       model: this.model,
       max_tokens: 600,
       system: systemPrompt(ctx),
-      messages: [{ role: 'user', content: userPrompt(ctx, task) }],
+      messages: [{ role: 'user', content: user }],
       tools: [tool],
       tool_choice: { type: 'tool', name: tool.name },
     });
