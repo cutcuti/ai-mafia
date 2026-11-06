@@ -1,3 +1,4 @@
+import { PRESETS, isPreset } from './presets.js';
 import type { Rng } from './rng.js';
 import type { Controller, GameConfig, Persona, Role, RoleCounts, Seat } from './types.js';
 
@@ -19,8 +20,6 @@ export const PERSONAS: Persona[] = [
   persona('npc', 'NPC energy', 'agrees with whoever spoke last, oddly calm, occasionally says something unsettlingly sharp'),
 ];
 
-export const CLASSIC_ROLES: RoleCounts = { mafia: 2, detective: 1, doctor: 1, villager: 2 };
-
 export const totalSeats = (r: RoleCounts) => r.mafia + r.detective + r.doctor + r.villager;
 
 export function roleList(r: RoleCounts): Role[] {
@@ -32,13 +31,17 @@ export function roleList(r: RoleCounts): Role[] {
   ];
 }
 
-/** Fill in defaults. Only `seed` is required. */
+/**
+ * Fill in defaults. Only `seed` is required. `preset` picks the role table (default classic6);
+ * passing `roles` without a preset makes it a 'custom' table.
+ */
 export function makeConfig(o: Partial<GameConfig> & { seed: number }): GameConfig {
-  const roles = o.roles ?? CLASSIC_ROLES;
+  const preset = o.preset ?? (o.roles ? 'custom' : 'classic6');
+  const roles: RoleCounts = o.roles ?? (isPreset(preset) ? { ...PRESETS[preset] } : { ...PRESETS.classic6 });
   const controllers: Controller[] = o.controllers ?? Array.from({ length: totalSeats(roles) }, () => ({ kind: 'random' }));
   return {
     gameId: o.gameId ?? `game-${o.seed}`,
-    preset: o.preset ?? 'classic6',
+    preset,
     roles,
     controllers,
     seed: o.seed,

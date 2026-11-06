@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { createGame, drive, makeConfig } from '@ai-mafia/engine';
+import { PRESETS, PRESET_NAMES, createGame, drive, isPreset, makeConfig, totalSeats } from '@ai-mafia/engine';
 import type { Controller, GameEvent, GameState, Responder } from '@ai-mafia/engine';
 import { ClaudeController } from './claude.js';
 import { RandomController } from './random.js';
@@ -13,15 +13,19 @@ const { values } = parseArgs({
     model: { type: 'string', default: process.env.MAFIA_MODEL ?? 'claude-haiku-5-5' },
     seed: { type: 'string', default: String(Date.now() % 100000) },
     thoughts: { type: 'boolean', default: false }, // spectator mode: show private thoughts
+    preset: { type: 'string', default: 'classic6' }, // classic6 | mini5 | big8
     rounds: { type: 'string', default: '2' },
     out: { type: 'string', default: 'games' },
   },
 });
 
 const seed = Number(values.seed);
-const seatKinds = values.agents!.includes(',') ? values.agents!.split(',') : Array<string>(6).fill(values.agents!);
+if (!isPreset(values.preset!)) throw new Error(`unknown preset "${values.preset}" (try: ${PRESET_NAMES.join(', ')})`);
+const preset = values.preset;
+const seats = totalSeats(PRESETS[preset]);
+const seatKinds = values.agents!.includes(',') ? values.agents!.split(',') : Array<string>(seats).fill(values.agents!);
 const controllers: Controller[] = seatKinds.map((k) => (k === 'claude' ? { kind: 'model', modelId: values.model! } : { kind: 'random' }));
-const config = makeConfig({ seed, controllers, rounds: Number(values.rounds), createdAt: new Date().toISOString() });
+const config = makeConfig({ seed, preset, controllers, rounds: Number(values.rounds), createdAt: new Date().toISOString() });
 let state = createGame(config);
 
 const responders = new Map<string, Responder>(

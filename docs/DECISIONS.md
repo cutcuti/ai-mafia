@@ -14,3 +14,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — Thought events are emitted right after the action they explain (`replyToSeq` = action seq); fallback events right before it.
 - 2026-11-06 — Speech is trimmed then hard-cut to `maxSpeechChars` (no ellipsis), flagged `payload.truncated`.
 - 2026-11-06 — `replay()` re-executes the engine, re-feeding each step's response recovered from the log (raw output from `fallback` events; truncated speech padded by one char) and verifies every event matches — rngState and queue can't be derived any other way.
+- 2026-11-06 — `makeConfig` with `roles` but no `preset` yields preset 'custom'; a named preset must match its role table exactly — presets stay meaningful for leaderboard filtering.

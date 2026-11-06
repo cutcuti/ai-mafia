@@ -1,3 +1,4 @@
+import { assertValidConfig } from './presets.js';
 import { createRng, type Rng } from './rng.js';
 import { createSeats } from './setup.js';
 import type {
@@ -356,6 +357,7 @@ function applyChoose(d: GameState, s: Seat, req: Extract<InputRequest, { kind: '
 // ── public API (BRD §6.2) ────────────────────────────────────────────────────
 
 export function createGame(config: GameConfig): GameState {
+  assertValidConfig(config);
   const rng = createRng(config.seed);
   const seats = createSeats(config, rng);
   const d: GameState = {
