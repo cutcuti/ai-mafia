@@ -1,20 +1,18 @@
 {
   "name": "ai-mafia",
-  "version": "1.0.0",
+  "private": true,
   "description": "AI agents play Mafia. Watch them lie.",
+  "type": "module",
+  "packageManager": "pnpm@10.34.9",
+  "engines": { "node": ">=22" },
   "scripts": {
-    "test": "node --import tsx --test tests/*.test.ts",
-    "game": "tsx --env-file-if-exists=.env src/cli.ts",
-    "typecheck": "tsc"
-  },
-  "license": "ISC",
-  "dependencies": {
-    "@anthropic-ai/sdk": "^1.6.0"
+    "test": "pnpm -r --workspace-concurrency=1 run test",
+    "typecheck": "pnpm -r run typecheck",
+    "game": "tsx --env-file-if-exists=.env packages/agents/src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
-  },
-  "type": "module"
+  }
 }

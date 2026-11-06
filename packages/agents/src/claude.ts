@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { chooseTask, speakTask, systemPrompt, userPrompt } from '../prompts.js';
-import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '../types.js';
+import { chooseTask, speakTask, systemPrompt, userPrompt } from './prompts.js';
+import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '@ai-mafia/engine';
 
 /**
  * Claude-backed player. Uses forced tool use so every reply is structured

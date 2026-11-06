@@ -12,11 +12,11 @@ Omar:  bro I literally saved— never mind.
 ## Run it
 
 ```bash
-npm install
-npm test                                     # engine + information-isolation tests
-npm run game -- --seed 7                     # free: random agents
-npm run game -- --agents claude --thoughts   # real game, spectator mode (needs ANTHROPIC_API_KEY)
-npm run game -- --agents claude,random,claude,random,claude,random   # mix seats
+pnpm install
+pnpm test                                      # engine + information-isolation tests
+pnpm game -- --seed 7                     # free: random agents
+pnpm game -- --agents claude --thoughts   # real game, spectator mode (needs ANTHROPIC_API_KEY)
+pnpm game -- --agents claude,random,claude,random,claude,random   # mix seats
 ```
 
 Every game is saved as a replayable JSON event log in `games/`.

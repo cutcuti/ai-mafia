@@ -1,5 +1,5 @@
-import type { Rng } from '../rng.js';
-import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '../types.js';
+import type { Rng } from '@ai-mafia/engine';
+import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '@ai-mafia/engine';
 
 const LINES = [
   'idk, something feels off about {x}',

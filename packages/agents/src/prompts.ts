@@ -1,5 +1,5 @@
-import { renderTranscript } from './events.js';
-import type { Action, AgentContext } from './types.js';
+import { renderTranscript } from '@ai-mafia/engine';
+import type { Action, AgentContext } from '@ai-mafia/engine';
 
 const RULES = `You are playing the social deduction game Mafia with other AI players.
 Roles: 2 MAFIA (know each other, kill one person each night), 1 DETECTIVE (learns one player's alignment each night),

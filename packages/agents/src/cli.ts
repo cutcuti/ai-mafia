@@ -1,13 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { ClaudeAgent } from './agents/claude.js';
-import { RandomAgent } from './agents/random.js';
-import { Game } from './game.js';
-import { makeRng } from './rng.js';
-import { createPlayers } from './setup.js';
-import type { Agent, GameEvent } from './types.js';
+import { Game, createPlayers, makeRng } from '@ai-mafia/engine';
+import type { Agent, GameEvent } from '@ai-mafia/engine';
+import { ClaudeAgent } from './claude.js';
+import { RandomAgent } from './random.js';
 
 const { values } = parseArgs({
+  // `pnpm game -- --x` forwards the literal `--`; drop it so flags still parse.
+  args: process.argv.slice(2).filter((a) => a !== '--'),
   options: {
     agents: { type: 'string', default: 'random' }, // "random" | "claude" | comma list per seat, e.g. "claude,random,..."
     model: { type: 'string', default: process.env.MAFIA_MODEL ?? 'claude-haiku-5-5' },

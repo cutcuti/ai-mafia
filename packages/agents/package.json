@@ -1,0 +1,16 @@
+{
+  "name": "@ai-mafia/agents",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent controllers (random, LLM) and prompts.",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@ai-mafia/engine": "workspace:*",
+    "@anthropic-ai/sdk": "^1.6.0"
+  }
+}

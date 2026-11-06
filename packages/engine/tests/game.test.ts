@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { RandomAgent } from '../src/agents/random.js';
 import { canSee } from '../src/events.js';
 import { Game, checkWinner, tally } from '../src/game.js';
 import { makeRng } from '../src/rng.js';
 import { createPlayers } from '../src/setup.js';
 import type { Agent, AgentContext, Player } from '../src/types.js';
+import { RandomAgent } from './helpers.js';
 
 /** Wraps an agent and records every context it was handed. */
 class SpyAgent implements Agent {

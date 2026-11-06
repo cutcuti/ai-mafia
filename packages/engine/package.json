@@ -1,0 +1,12 @@
+{
+  "name": "@ai-mafia/engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pure, deterministic Mafia game engine. No IO, no deps.",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc -p ."
+  }
+}
