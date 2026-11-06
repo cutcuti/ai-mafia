@@ -11,7 +11,8 @@
     "test": "pnpm -r --workspace-concurrency=1 run test",
     "typecheck": "pnpm -r run typecheck",
     "game": "tsx --env-file-if-exists=.env packages/agents/src/cli.ts",
-    "bench": "tsx --env-file-if-exists=.env packages/bench/src/cli.ts"
+    "bench": "tsx --env-file-if-exists=.env packages/bench/src/cli.ts",
+    "ratings:rebuild": "tsx packages/bench/src/rebuild.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

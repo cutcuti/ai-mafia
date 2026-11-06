@@ -3,3 +3,4 @@ games/
 reports/
 .env
 *.tsbuildinfo
+ratings.json
