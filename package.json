@@ -18,7 +18,8 @@
     "db:gen-seed": "tsx packages/bench/src/seedsql.ts",
     "db:check": "tsx --env-file-if-exists=.env packages/bench/src/check.ts",
     "web:dev": "pnpm --filter @ai-mafia/web dev",
-    "web:build": "pnpm --filter @ai-mafia/web build"
+    "web:build": "pnpm --filter @ai-mafia/web build",
+    "e2e": "pnpm --filter @ai-mafia/web e2e"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
