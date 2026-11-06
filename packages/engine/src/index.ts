@@ -4,3 +4,4 @@ export * from './setup.js';
 export * from './visibility.js';
 export * from './state.js';
 export * from './drive.js';
+export * from './replay.js';
