@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
-import { ratedGameFromRow, ratingToRow, type BenchDb } from '../src/db.ts';
+import { ratedGameFromRow, ratingToRow, statsGameFromRows, type BenchDb } from '../src/db.ts';
+import { statsToRow } from '../src/modelstats.ts';
 
 const MIGRATIONS = new URL('../../../supabase/migrations/', import.meta.url);
 
@@ -52,6 +53,27 @@ export function pgliteDb(db: PGlite): BenchDb {
     async replaceRatings(rows) {
       const r = await as(db, 'service_role', () => db.query<{ n: number }>('select public.replace_ratings($1) as n', [rows.map(ratingToRow)]));
       return r.rows[0].n;
+    },
+    async fetchStatsGames() {
+      return as(db, 'service_role', async () => {
+        const games = (
+          await db.query<Record<string, unknown>>(`
+            select g.id, g.external_id, g.outcome, g.preset, g.prompt_version, g.config,
+                   (select jsonb_agg(jsonb_build_object('seat_id', s.seat_id, 'name', s.name, 'role', s.role, 'controller', s.controller))
+                      from public.seats s where s.game_id = g.id) as seats
+            from public.games g where g.status = 'finished' order by g.external_id`)
+        ).rows;
+        const out = [];
+        for (const g of games) {
+          const ev = (await db.query<Record<string, unknown>>('select * from public.events where game_id = $1 order by seq', [g.id])).rows;
+          const calls = (await db.query<Record<string, unknown>>('select * from public.agent_calls where game_id = $1 order by id', [g.id])).rows;
+          out.push(statsGameFromRows(g, ev, calls));
+        }
+        return out;
+      });
+    },
+    async replaceLeaderboard(ratings, stats) {
+      await as(db, 'service_role', () => db.query('select public.replace_leaderboard($1, $2)', [ratings.map(ratingToRow), stats.map(statsToRow)]));
     },
   };
 }

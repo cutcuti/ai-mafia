@@ -30,10 +30,10 @@ test('works with "Automatically expose new tables" OFF: server can write, public
   await assert.rejects(as(db, 'anon', () => db.query('select public.upload_game($1)', [minimalGame('x')])), /permission denied/);
 });
 
-test('migrations apply cleanly and create every §9.2 table', async () => {
+test('migrations apply cleanly and create every §9.2 table (+ model_stats)', async () => {
   const db = await supabaseLikeDb();
   const { rows } = await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema = 'public' order by 1`);
-  assert.deepEqual(rows.map((r) => r.table_name), ['agent_calls', 'events', 'games', 'highlights', 'models', 'ratings', 'seats']);
+  assert.deepEqual(rows.map((r) => r.table_name), ['agent_calls', 'events', 'games', 'highlights', 'model_stats', 'models', 'ratings', 'seats']);
 });
 
 test('upload_game inserts game, seats, events and agent calls in one call', async () => {

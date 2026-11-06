@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent } from '@ai-mafia/engine';
 import { MODELS, type ModelSpec } from '@ai-mafia/agents';
+import { computeModelStats, statsToRow, type ModelStatsRow, type StatsGame } from './modelstats.ts';
 import { computeRatings, type RatingRow } from './ratings.ts';
 import { RANDOM, type GameRecord } from './runner.ts';
 
@@ -58,6 +59,10 @@ export interface BenchDb {
   /** Finished games with just what ratings need. */
   fetchRatedGames(): Promise<Pick<GameRecord, 'gameId' | 'seats' | 'outcome' | 'promptVersion' | 'preset'>[]>;
   replaceRatings(rows: RatingRow[]): Promise<number>;
+  /** Finished games with events and agent calls (no raw), for metrics. */
+  fetchStatsGames(): Promise<StatsGame[]>;
+  /** Swap ratings + model_stats atomically. */
+  replaceLeaderboard(ratings: RatingRow[], stats: ModelStatsRow[]): Promise<void>;
 }
 
 const RANDOM_MODEL = { id: RANDOM, provider: 'none', model: 'random', display_name: 'Random (baseline)', pricing: { inputPerMTok: 0, outputPerMTok: 0 }, enabled: true };
@@ -203,6 +208,68 @@ export function supabaseDb(client: SupabaseClient): BenchDb {
       if (error) throw new Error(`replace_ratings: ${error.message}`);
       return data as number;
     },
+    async fetchStatsGames() {
+      // 1) finished games + seats, paged; 2) their events and agent calls in id batches (raw never fetched)
+      const games: { id: string; row: Record<string, unknown> }[] = [];
+      const page = 500;
+      for (let from = 0; ; from += page) {
+        const { data, error } = await client
+          .from('games')
+          .select('id, external_id, outcome, preset, prompt_version, config, seats(seat_id, name, role, controller)')
+          .eq('status', 'finished')
+          .order('external_id')
+          .range(from, from + page - 1);
+        if (error) throw new Error(`fetch games: ${error.message}`);
+        for (const g of data ?? []) games.push({ id: String(g.id), row: g });
+        if (!data || data.length < page) break;
+      }
+      const events = new Map<string, Record<string, unknown>[]>();
+      const calls = new Map<string, Record<string, unknown>[]>();
+      const pull = async (table: 'events' | 'agent_calls', cols: string, order: string, into: Map<string, Record<string, unknown>[]>, ids: string[]) => {
+        for (let from = 0; ; from += 1000) {
+          const { data, error } = await client.from(table).select(cols).in('game_id', ids).order('game_id').order(order).range(from, from + 999);
+          if (error) throw new Error(`fetch ${table}: ${error.message}`);
+          for (const r of (data ?? []) as unknown as Record<string, unknown>[]) {
+            const k = String(r.game_id);
+            into.set(k, [...(into.get(k) ?? []), r]);
+          }
+          if (!data || data.length < 1000) break;
+        }
+      };
+      for (let i = 0; i < games.length; i += 50) {
+        const ids = games.slice(i, i + 50).map((g) => g.id);
+        await pull('events', '*', 'seq', events, ids);
+        await pull('agent_calls', 'game_id, seq, seat_id, model_id, prompt_version, input_tokens, output_tokens, cost_usd, latency_ms, retries, fallback', 'id', calls, ids);
+      }
+      return games.map(({ id, row }) => statsGameFromRows(row, events.get(id) ?? [], calls.get(id) ?? []));
+    },
+    async replaceLeaderboard(ratings, stats) {
+      const { error } = await client.rpc('replace_leaderboard', { p_ratings: ratings.map(ratingToRow), p_stats: stats.map(statsToRow) });
+      if (error) throw new Error(`replace_leaderboard: ${error.message}`);
+    },
+  };
+}
+
+/** DB rows → a game the metrics module can read. */
+export function statsGameFromRows(g: Record<string, unknown>, events: Record<string, unknown>[], calls: Record<string, unknown>[]): StatsGame {
+  const rated = ratedGameFromRow(g);
+  const gameId = String((g.config as { gameId?: string })?.gameId ?? g.external_id);
+  return {
+    ...rated,
+    events: events.map((e) => rowToEvent(gameId, e)).sort((a, b) => a.seq - b.seq),
+    agentCalls: calls.map((c) => ({
+      gameId: rated.gameId,
+      seq: Number(c.seq),
+      seatId: String(c.seat_id),
+      modelId: String(c.model_id),
+      promptVersion: String(c.prompt_version),
+      inputTokens: Number(c.input_tokens ?? 0),
+      outputTokens: Number(c.output_tokens ?? 0),
+      costUsd: Number(c.cost_usd ?? 0),
+      latencyMs: Number(c.latency_ms ?? 0),
+      retries: Number(c.retries ?? 0),
+      fallback: Boolean(c.fallback),
+    })),
   };
 }
 
@@ -223,12 +290,16 @@ export function ratedGameFromRow(g: Record<string, unknown>) {
   };
 }
 
-/** BRD §8.4 rebuild: every finished game in the DB → ratings computed from scratch → ratings table replaced atomically. */
-export async function rebuildRatingsInDb(db: BenchDb): Promise<{ games: number; rows: RatingRow[] }> {
-  const games = await db.fetchRatedGames();
+/**
+ * BRD §8.4 rebuild: every finished game in the DB → ratings and per-model stats computed from scratch →
+ * both tables replaced in one transaction (the leaderboard is never half-updated).
+ */
+export async function rebuildRatingsInDb(db: BenchDb): Promise<{ games: number; rows: RatingRow[]; stats: ModelStatsRow[] }> {
+  const games = await db.fetchStatsGames();
   const rows = computeRatings(games);
-  await db.replaceRatings(rows);
-  return { games: games.length, rows };
+  const stats = computeModelStats(games);
+  await db.replaceLeaderboard(rows, stats);
+  return { games: games.length, rows, stats };
 }
 
 export const ratingToRow = (r: RatingRow) => ({

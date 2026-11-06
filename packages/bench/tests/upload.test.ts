@@ -68,6 +68,8 @@ test('one failing game is reported and does not stop the others', async () => {
     },
     fetchRatedGames: async () => [],
     replaceRatings: async () => 0,
+    fetchStatsGames: async () => [],
+    replaceLeaderboard: async () => {},
   };
   const sum = await uploadRecords(flaky, records);
   assert.equal(sum.uploaded, 3);

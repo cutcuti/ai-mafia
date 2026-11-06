@@ -4,4 +4,5 @@ node_modules/
 .env
 *.tsbuildinfo
 ratings.json
+leaderboard.json
 supabase/.temp/

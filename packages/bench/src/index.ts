@@ -6,3 +6,4 @@ export * from './report.ts';
 export * from './db.ts';
 export * from './seed.ts';
 export * from './seedsql.ts';
+export * from './modelstats.ts';
