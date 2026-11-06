@@ -33,7 +33,7 @@ test('works with "Automatically expose new tables" OFF: server can write, public
 test('migrations apply cleanly and create every §9.2 table (+ model_stats)', async () => {
   const db = await supabaseLikeDb();
   const { rows } = await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema = 'public' order by 1`);
-  assert.deepEqual(rows.map((r) => r.table_name), ['agent_calls', 'events', 'games', 'highlights', 'model_stats', 'models', 'ratings', 'seats']);
+  assert.deepEqual(rows.map((r) => r.table_name), ['agent_calls', 'events', 'games', 'highlights', 'model_stats', 'models', 'rate_limits', 'ratings', 'seats']);
 });
 
 test('upload_game inserts game, seats, events and agent calls in one call', async () => {
