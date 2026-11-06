@@ -1,4 +1,33 @@
+import { buildLeaderboard, h2hSummary, modelProfile } from './leaderboard';
 import { authorizeView, cacheControl, eventsForViewer, gameMeta, type Caller } from './views';
+
+/** Aggregates over finished games change only on rebuild: cache at the edge, revalidate in the background. */
+const PUBLIC_AGGREGATE = 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600';
+
+/** GET /api/leaderboard?scope=&preset=&promptVersion= */
+export async function leaderboardResponse(store: GameStore, url: URL): Promise<Response> {
+  const lb = buildLeaderboard(await store.getLeaderboard(), {
+    scope: url.searchParams.get('scope'),
+    preset: url.searchParams.get('preset'),
+    promptVersion: url.searchParams.get('promptVersion'),
+  });
+  return json(lb, 200, { 'cache-control': PUBLIC_AGGREGATE });
+}
+
+/** GET /api/models/:id — ratings, stats and recent games for one model. */
+export async function modelResponse(store: GameStore, id: string): Promise<Response> {
+  const profile = modelProfile(await store.getLeaderboard(), id);
+  if (!profile) return error(404, 'model not found');
+  const { games } = await store.listGames({ limit: 10, model: id });
+  return json({ ...profile, recentGames: games }, 200, { 'cache-control': PUBLIC_AGGREGATE });
+}
+
+/** GET /api/h2h/:a/:b?preset=&promptVersion= — both directions + self-play baselines. */
+export async function h2hResponse(store: GameStore, a: string, b: string, url: URL): Promise<Response> {
+  if (a === b) return error(400, 'pick two different models');
+  const summary = h2hSummary(await store.listPairGames(), a, b, url.searchParams.get('preset') ?? 'classic6', url.searchParams.get('promptVersion'));
+  return json(summary, 200, { 'cache-control': PUBLIC_AGGREGATE });
+}
 import type { GameStore } from './types';
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>

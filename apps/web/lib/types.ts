@@ -1,4 +1,5 @@
 import type { Controller, GameConfig, GameEvent, Outcome, Role } from '@ai-mafia/engine';
+import type { LeaderboardSnapshot, PairGame } from './leaderboard';
 
 export interface StoredSeat {
   seatId: string;
@@ -53,6 +54,24 @@ export interface GameStore {
   listGames(q: ListQuery): Promise<{ games: GameSummary[]; nextCursor?: string }>;
   getGame(id: string): Promise<StoredGame | null>;
   getEvents(id: string): Promise<GameEvent[]>;
+  /** Ratings + per-model stats + model registry (public aggregates). */
+  getLeaderboard(): Promise<LeaderboardSnapshot>;
+  /** Finished games reduced to which models held the mafia / town seats (for head-to-head pages). */
+  listPairGames(): Promise<PairGame[]>;
+}
+
+/** Finished game → mafia / town model lists (roles of a finished game are public). */
+export function pairGameOf(g: Pick<StoredGame, 'id' | 'outcome' | 'preset' | 'promptVersion' | 'seats'>): PairGame | null {
+  if (!g.outcome) return null;
+  const model = (s: StoredSeat) => (s.controller.kind === 'model' ? s.controller.modelId : s.controller.kind);
+  return {
+    id: g.id,
+    outcome: g.outcome,
+    preset: g.preset,
+    promptVersion: g.promptVersion,
+    mafiaModels: g.seats.filter((s) => s.role === 'mafia').map(model),
+    townModels: g.seats.filter((s) => s.role !== 'mafia').map(model),
+  };
 }
 
 export const modelsOf = (config: GameConfig): string[] =>

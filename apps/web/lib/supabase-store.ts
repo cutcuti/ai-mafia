@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent } from '@ai-mafia/engine';
-import { modelsOf, type GameStore, type ListQuery, type StoredGame } from './types';
+import type { LeaderboardSnapshot, PairGame } from './leaderboard';
+import { modelsOf, pairGameOf, type GameStore, type ListQuery, type StoredGame } from './types';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const GAME_COLS = 'id, external_id, mode, format, run_id, preset, prompt_version, status, outcome, has_human, cost_usd, created_at, finished_at, config';
@@ -100,6 +101,62 @@ export class SupabaseStore implements GameStore {
     if (error) throw new Error(`get game: ${error.message}`);
     if (!data) return null;
     return toStored(data, (data.seats as Record<string, unknown>[]) ?? []);
+  }
+
+  async getLeaderboard(): Promise<LeaderboardSnapshot> {
+    const [r, s, m] = await Promise.all([
+      this.db.from('ratings').select('*'),
+      this.db.from('model_stats').select('*'),
+      this.db.from('models').select('id, provider, model, display_name'),
+    ]);
+    for (const x of [r, s, m]) if (x.error) throw new Error(`leaderboard: ${x.error.message}`);
+    const updated = (r.data ?? []).map((x) => String(x.updated_at)).sort().at(-1);
+    return {
+      generatedAt: updated ? new Date(updated).toISOString() : undefined,
+      ratings: (r.data ?? []).map((x) => ({
+        modelId: x.model_id,
+        scope: x.scope,
+        promptVersion: x.prompt_version,
+        preset: x.preset,
+        mu: Number(x.mu),
+        sigma: Number(x.sigma),
+        ordinal: Number(x.ordinal),
+        games: Number(x.games),
+      })),
+      stats: (s.data ?? []).map((x) => ({ modelId: x.model_id, promptVersion: x.prompt_version, preset: x.preset, games: Number(x.games), stats: x.stats })),
+      models: (m.data ?? []).map((x) => ({ id: x.id, displayName: x.display_name, provider: x.provider, model: x.model })),
+    };
+  }
+
+  async listPairGames(): Promise<PairGame[]> {
+    const out: PairGame[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await this.db
+        .from('games')
+        .select('id, outcome, preset, prompt_version, seats(seat_id, role, controller)')
+        .eq('status', 'finished')
+        .order('id')
+        .range(from, from + 999);
+      if (error) throw new Error(`pair games: ${error.message}`);
+      for (const g of data ?? []) {
+        const p = pairGameOf({
+          id: String(g.id),
+          outcome: g.outcome as StoredGame['outcome'],
+          preset: String(g.preset),
+          promptVersion: String(g.prompt_version),
+          seats: ((g.seats as Record<string, unknown>[]) ?? []).map((s) => ({
+            seatId: String(s.seat_id),
+            name: '',
+            role: s.role as StoredGame['seats'][number]['role'],
+            personaId: '',
+            controller: s.controller as StoredGame['seats'][number]['controller'],
+          })),
+        });
+        if (p) out.push(p);
+      }
+      if (!data || data.length < 1000) break;
+    }
+    return out;
   }
 
   async getEvents(id: string) {

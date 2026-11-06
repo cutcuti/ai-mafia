@@ -1,7 +1,9 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { GameConfig, GameEvent, Outcome, Role } from '@ai-mafia/engine';
-import { modelsOf, type GameStore, type ListQuery, type StoredGame } from './types';
+import type { LeaderboardSnapshot, PairGame } from './leaderboard';
+import { modelName } from './roster';
+import { modelsOf, pairGameOf, type GameStore, type ListQuery, type StoredGame } from './types';
 
 /** The bench's on-disk GameRecord (schema 1) — just the fields we read. */
 interface RecordFile {
@@ -71,6 +73,11 @@ export class FixtureStore implements GameStore {
       }
     };
     walk(dir);
+    try {
+      store.setLeaderboard(JSON.parse(readFileSync(join(dir, 'leaderboard.json'), 'utf8')));
+    } catch {
+      // no leaderboard snapshot in this fixture dir
+    }
     return store;
   }
 
@@ -113,5 +120,20 @@ export class FixtureStore implements GameStore {
 
   async getEvents(id: string) {
     return [...(this.games.get(id)?.events ?? [])];
+  }
+
+  /** leaderboard.json written by `pnpm ratings:rebuild` (same shape as the DB tables). */
+  private snapshot: LeaderboardSnapshot = { ratings: [], stats: [], models: [] };
+  setLeaderboard(s: Omit<LeaderboardSnapshot, 'models'> & { models?: LeaderboardSnapshot['models'] }) {
+    const ids = [...new Set([...s.ratings.map((r) => r.modelId), ...s.stats.map((r) => r.modelId)])];
+    this.snapshot = { ...s, models: s.models ?? ids.map((id) => ({ id, displayName: modelName(id), provider: '', model: '' })) };
+  }
+
+  async getLeaderboard() {
+    return this.snapshot;
+  }
+
+  async listPairGames() {
+    return [...this.games.values()].map((x) => pairGameOf(x.game)).filter((g): g is PairGame => g !== null && this.games.get(g.id)!.game.status === 'finished');
   }
 }
