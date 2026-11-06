@@ -17,6 +17,19 @@ const minimalGame = (externalId: string, seqs = [0, 1]) => ({
   agent_calls: [{ seq: 1, seat_id: 's1', model_id: 'random', prompt_version: 'p1', input_tokens: 1, output_tokens: 1, cost_usd: 0, latency_ms: 1, retries: 0, fallback: false }],
 });
 
+test('works with "Automatically expose new tables" OFF: server can write, public reads only models + ratings', async () => {
+  const db = await supabaseLikeDb({ autoExpose: false });
+  await as(db, 'service_role', () => db.query('select public.upload_game($1)', [minimalGame('g1')]));
+  await as(db, 'service_role', () =>
+    db.query('select public.replace_ratings($1)', [[{ model_id: 'random', scope: 'overall', prompt_version: 'p1', preset: 'classic6', mu: 25, sigma: 8, ordinal: 1, games: 1 }]]),
+  );
+  assert.equal((await as(db, 'service_role', () => db.query('select * from public.events'))).rows.length, 2);
+  assert.equal((await as(db, 'anon', () => db.query('select * from public.models'))).rows.length, 1);
+  assert.equal((await as(db, 'anon', () => db.query('select * from public.ratings'))).rows.length, 1);
+  await assert.rejects(as(db, 'anon', () => db.query('select * from public.events')), /permission denied/);
+  await assert.rejects(as(db, 'anon', () => db.query('select public.upload_game($1)', [minimalGame('x')])), /permission denied/);
+});
+
 test('migrations apply cleanly and create every §9.2 table', async () => {
   const db = await supabaseLikeDb();
   const { rows } = await db.query<{ table_name: string }>(`select table_name from information_schema.tables where table_schema = 'public' order by 1`);

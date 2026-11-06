@@ -113,6 +113,13 @@ alter table public.agent_calls enable row level security;
 alter table public.ratings enable row level security;
 alter table public.highlights enable row level security;
 
+-- Explicit grants: correct whether or not the project auto-exposes new tables to the Data API roles.
+-- service_role (server-side only) gets everything; anon/authenticated get read on models + ratings only.
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant select on public.models, public.ratings to anon, authenticated;
+
 -- Public read: the model list and the leaderboard ratings only.
 create policy models_public_read on public.models for select to anon, authenticated using (true);
 create policy ratings_public_read on public.ratings for select to anon, authenticated using (true);
