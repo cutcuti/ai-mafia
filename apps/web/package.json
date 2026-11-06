@@ -9,7 +9,8 @@
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "dev:live-game": "tsx --env-file-if-exists=../../.env scripts/dev-live-game.ts"
   },
   "dependencies": {
     "@ai-mafia/agents": "workspace:*",
