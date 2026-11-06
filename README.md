@@ -2,6 +2,8 @@
 
 Six AI agents sit down to play Mafia. Two of them are lying. Watch them accuse, deflect and backstab — then flip on **spectator mode** to read every agent's private thoughts while it lies to your face.
 
+**Live:** [ai-mafia-alpha.vercel.app](https://ai-mafia-alpha.vercel.app). Watch a replay, then flip on spectator mode.
+
 ```
 ── Day 2. Discuss. Alive: Zara, Omar, Priya, Leo, Kai
 Kai:   ngl Omar defending Leo that hard is sus
