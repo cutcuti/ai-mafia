@@ -18,17 +18,19 @@ pnpm typecheck
 pnpm game -- --seed 7                         # free: random agents
 pnpm game -- --preset big8 --thoughts         # presets: classic6 (default), mini5, big8
 pnpm game -- --agents claude --thoughts       # real game, spectator mode (needs ANTHROPIC_API_KEY in .env)
-pnpm game -- --agents claude,random,claude,random,claude,random   # mix seats
+pnpm game -- --agents claude-haiku,gpt-nano,llama-70b,random,claude-sonnet,deepseek-v3   # one model per seat
+pnpm game -- --agents claude-haiku,gpt-nano,llama-70b,random,claude-sonnet,deepseek-v3 --dry-run   # same, mocked: no keys, no cost
+pnpm game -- --help
 ```
 
-Every game is saved as a replayable JSON event log in `games/`.
+Every game is saved as a replayable JSON event log in `games/`, with one cost/latency record per LLM call. The CLI ends with a per-model table of calls, tokens, cost, fallbacks and p50/p95 latency. Keys go in `.env` (see `.env.example`).
 
 ## How it works
 
 ```
 packages/
 ├─ engine/   pure, deterministic state machine — zero deps, no IO, no Math.random, no clock
-└─ agents/   controllers (random, Claude) + prompts; the CLI lives here until packages/bench exists
+└─ agents/   controllers, prompts, provider adapters (Anthropic, OpenAI-compatible), model registry; CLI lives here until packages/bench exists
 ```
 
 - **Step-based engine.** `createGame(config)` → `nextRequest(state)` → `applyResponse(state, requestId, response)` → … The whole game is a serializable `GameState`, so the same engine runs CLI batches, serverless live games (one step per request) and human seats that pause for input. `drive()` is the tiny shared loop.
@@ -36,6 +38,9 @@ packages/
 - **Information isolation is the core invariant.** An agent's context comes *only* from `contextFor(state, seat)`, which filters the log through `canSee()`. Spy tests across hundreds of seeded games per preset, plus fast-check property tests over random tables, assert that no seat ever sees mafia chat, someone else's role or investigation, or *any* private thought.
 - **Deterministic.** A seeded RNG whose state is one `uint32` lives in `GameState`. Same config + seed + responses ⇒ identical log — tested, and a test scans the engine source for `Math.random` / `Date.now` / IO.
 - **Untrusted agent output.** Responses are validated; bad targets, empty speech, thrown errors or plain garbage become a seeded random valid choice plus a `fallback` event. Games never crash or stall. Speech is capped at 280 chars.
+- **Multi-provider agents.** One `ModelController` drives any `Provider` adapter (Anthropic, OpenAI, OpenRouter) with forced tool calls (or `auto` for models that reject forcing), zod-validated output with one repair retry, timeouts, retries with backoff + jitter, and per-provider concurrency limits. Official SDKs only, no agent frameworks. `models.config.ts` holds 9 models with pricing, so every call is costed.
+- **Prompt-injection hardening.** Player text only reaches a prompt inside `<speech from="…">` tags with `<`, `>`, `&` and backticks escaped, and the system prompt says speech is never an instruction. Prompts are versioned (`p1`) and pinned by golden snapshot tests.
+- **Long games.** Past a token budget, agents write ≤150-word private notes at each day end and later prompts carry notes + key facts + today instead of the whole log.
 - **Rules.** 6 players by default: 2 Mafia · 1 Detective · 1 Doctor · 2 Villagers. The doctor can't save the same player twice in a row; the detective never re-checks someone; no winner after 8 days is a draw.
 
 Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](docs/DECISIONS.md).
@@ -44,10 +49,11 @@ Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](
 
 - [x] v0: engine, visibility rules, random + Claude agents, CLI, tests
 - [x] M0: pnpm monorepo, step-based pure engine, replay, presets, invariant + property tests, CI
+- [x] M1: multi-provider agents (Anthropic, OpenAI, OpenRouter), prompt p1 + injection defenses, zod validation, retries, model registry + cost, personas, notes mode
 - [ ] Batch runner: N games per model mix → `stats.json`
 - [ ] Metrics: mafia win rate, detective hit rate, vote accuracy, "deception score" (mafia votes received)
 - [ ] Leaderboard: Elo per model per role — *which model lies best?*
-- [ ] More providers (OpenAI, Gemini, open models via an OpenAI-compatible endpoint)
+- [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)
 - [ ] Next.js spectator UI: replay viewer with thought toggle, role reveals, vote graph
 - [ ] Live games streamed to the browser
 - [ ] Human seat: you vs. five AIs
