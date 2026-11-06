@@ -13,9 +13,11 @@ Omar:  bro I literally saved— never mind.
 
 ```bash
 pnpm install
-pnpm test                                      # engine + information-isolation tests
-pnpm game -- --seed 7                     # free: random agents
-pnpm game -- --agents claude --thoughts   # real game, spectator mode (needs ANTHROPIC_API_KEY)
+pnpm test                                     # engine invariants + agents (no API calls)
+pnpm typecheck
+pnpm game -- --seed 7                         # free: random agents
+pnpm game -- --preset big8 --thoughts         # presets: classic6 (default), mini5, big8
+pnpm game -- --agents claude --thoughts       # real game, spectator mode (needs ANTHROPIC_API_KEY in .env)
 pnpm game -- --agents claude,random,claude,random,claude,random   # mix seats
 ```
 
@@ -23,16 +25,25 @@ Every game is saved as a replayable JSON event log in `games/`.
 
 ## How it works
 
-- **Event-sourced engine.** The game is an append-only log of events. Each event carries a `visibility`: `public`, `team:mafia`, `player:<id>`, or `spectator`.
-- **Information isolation is the core invariant.** An agent's context is built *only* by filtering the log through `canSee()`. Tests run hundreds of games with spy agents and assert no player ever receives an event it shouldn't (mafia chat, detective results, other agents' thoughts).
-- **Structured agent output.** Claude agents use forced tool use, so every turn returns `{ thought, speech }` or `{ thought, target }` with the target constrained to valid options. Invalid output falls back safely instead of crashing the game.
-- **Replays for free.** Because the log is the source of truth, the spectator UI is just a log player.
+```
+packages/
+├─ engine/   pure, deterministic state machine — zero deps, no IO, no Math.random, no clock
+└─ agents/   controllers (random, Claude) + prompts; the CLI lives here until packages/bench exists
+```
 
-Roles (6 players): 2 Mafia · 1 Detective · 1 Doctor · 2 Villagers.
+- **Step-based engine.** `createGame(config)` → `nextRequest(state)` → `applyResponse(state, requestId, response)` → … The whole game is a serializable `GameState`, so the same engine runs CLI batches, serverless live games (one step per request) and human seats that pause for input. `drive()` is the tiny shared loop.
+- **Event-sourced.** The game is an append-only, gapless log. Each event carries a `visibility`: `public`, `team:mafia`, `seat:<id>`, or `spectator`. `replay(config, events)` rebuilds the exact state.
+- **Information isolation is the core invariant.** An agent's context comes *only* from `contextFor(state, seat)`, which filters the log through `canSee()`. Spy tests across hundreds of seeded games per preset, plus fast-check property tests over random tables, assert that no seat ever sees mafia chat, someone else's role or investigation, or *any* private thought.
+- **Deterministic.** A seeded RNG whose state is one `uint32` lives in `GameState`. Same config + seed + responses ⇒ identical log — tested, and a test scans the engine source for `Math.random` / `Date.now` / IO.
+- **Untrusted agent output.** Responses are validated; bad targets, empty speech, thrown errors or plain garbage become a seeded random valid choice plus a `fallback` event. Games never crash or stall. Speech is capped at 280 chars.
+- **Rules.** 6 players by default: 2 Mafia · 1 Detective · 1 Doctor · 2 Villagers. The doctor can't save the same player twice in a row; the detective never re-checks someone; no winner after 8 days is a draw.
+
+Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## Roadmap
 
-- [x] Engine, visibility rules, random + Claude agents, CLI, tests
+- [x] v0: engine, visibility rules, random + Claude agents, CLI, tests
+- [x] M0: pnpm monorepo, step-based pure engine, replay, presets, invariant + property tests, CI
 - [ ] Batch runner: N games per model mix → `stats.json`
 - [ ] Metrics: mafia win rate, detective hit rate, vote accuracy, "deception score" (mafia votes received)
 - [ ] Leaderboard: Elo per model per role — *which model lies best?*
