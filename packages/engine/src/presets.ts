@@ -46,6 +46,7 @@ export function configErrors(c: GameConfig): string[] {
   if (!Number.isInteger(c.seed)) errs.push('seed must be an integer');
   if (!Number.isInteger(c.rounds) || c.rounds < 1) errs.push('rounds must be ≥ 1');
   if (!Number.isInteger(c.maxDays) || c.maxDays < 1) errs.push('maxDays must be ≥ 1');
+  if (c.notesBudgetTokens !== undefined && !(Number.isInteger(c.notesBudgetTokens) && c.notesBudgetTokens >= 0)) errs.push('notesBudgetTokens must be an integer ≥ 0');
   if (!Number.isInteger(c.maxSpeechChars) || c.maxSpeechChars < 1) errs.push('maxSpeechChars must be ≥ 1');
   return errs;
 }

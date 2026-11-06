@@ -14,7 +14,9 @@ test('applyResponse is idempotent: stale or unknown request ids are no-ops', () 
     const res =
       req.kind === 'speak'
         ? ({ kind: 'speak', thought: 't', speech: 'hi' } as const)
-        : ({ kind: 'choose', thought: 't', target: req.options[0] } as const);
+        : req.kind === 'notes'
+          ? ({ kind: 'notes', notes: 'n' } as const)
+          : ({ kind: 'choose', thought: 't', target: req.options[0] } as const);
     const next = applyResponse(s, req.id, res);
     assert.notEqual(next, s);
     assert.equal(next.version, s.version + 1);

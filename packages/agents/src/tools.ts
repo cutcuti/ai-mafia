@@ -23,6 +23,25 @@ export function toolFor(ctx: AgentContext, req: InputRequest): RequestTool {
   const toName = new Map(ctx.roster.map((r) => [r.seatId, r.name]));
   const toId = new Map(ctx.roster.map((r) => [r.name, r.seatId]));
 
+  if (req.kind === 'notes') {
+    const schema = z.object({ notes: z.string().trim().min(1, 'notes must not be empty') });
+    return {
+      spec: {
+        name: 'write_notes',
+        description: 'Write private notes for your future self. Only you will ever see them.',
+        schema: {
+          type: 'object',
+          properties: { notes: { type: 'string', description: `Your notes, at most ${req.maxWords} words.` } },
+          required: ['notes'],
+        },
+      },
+      parse(input) {
+        const r = schema.safeParse(input);
+        return r.success ? { ok: true, response: { kind: 'notes', notes: r.data.notes } } : { ok: false, error: format(r.error) };
+      },
+    };
+  }
+
   if (req.kind === 'speak') {
     const others = ctx.alive.filter((n) => n !== ctx.self.name);
     const accusable = (others.length ? others : ['nobody']) as [string, ...string[]];
@@ -96,5 +115,6 @@ export function toolFor(ctx: AgentContext, req: InputRequest): RequestTool {
 
 /** What the engine gets when a model never produced a valid answer: empty fields, so the engine's seeded fallback kicks in (I5). */
 export function invalidResponse(req: InputRequest, thought: string): InputResponse {
+  if (req.kind === 'notes') return { kind: 'notes', notes: '' };
   return req.kind === 'speak' ? { kind: 'speak', thought, speech: '' } : { kind: 'choose', thought, target: '' };
 }

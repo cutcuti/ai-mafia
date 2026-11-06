@@ -49,6 +49,9 @@ ${INJECTION_CLAUSE}`;
 }
 
 export function taskFor(req: InputRequest): string {
+  if (req.kind === 'notes') {
+    return `The day is over. Write private notes for your future self (max ${req.maxWords} words). From now on older transcript is replaced by your latest notes, so include everything that matters: revealed roles, claims, who voted for whom, who you trust or suspect and why, and your plan.`;
+  }
   if (req.kind === 'speak') {
     return req.channel === 'mafia'
       ? 'It is night. Talk privately with your mafia teammate(s) about who to kill and how to play tomorrow.'

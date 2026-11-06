@@ -21,10 +21,20 @@ export function renderEvent(e: GameEvent, nameOf: (seatId?: string) => string): 
   }
 }
 
-export function renderTranscript(ctx: Pick<AgentContext, 'roster' | 'observations'>): string {
+/** Facts that stay in the transcript even in notes mode: setup, your role/team, and every death. */
+const KEY_FACTS = new Set(['game_start', 'role_reveal', 'team_reveal', 'death', 'eliminated']);
+
+/**
+ * Full transcript by default. In notes mode (ctx.notes set, BRD §7.8): your latest notes + key facts + the current day only.
+ * Your own notes events are never rendered inline — the latest one is shown once, escaped, as its own block.
+ */
+export function renderTranscript(ctx: Pick<AgentContext, 'roster' | 'observations' | 'day'> & { notes?: string }): string {
   const nameOf = (id?: string) => ctx.roster.find((r) => r.seatId === id)?.name ?? '?';
-  return ctx.observations
-    .filter((e) => e.visibility.kind !== 'spectator')
-    .map((e) => renderEvent(e, nameOf))
-    .join('\n');
+  const notesMode = ctx.notes !== undefined;
+  const lines = ctx.observations
+    .filter((e) => e.visibility.kind !== 'spectator' && e.type !== 'notes')
+    .filter((e) => !notesMode || KEY_FACTS.has(e.type) || e.day === ctx.day)
+    .map((e) => renderEvent(e, nameOf));
+  if (notesMode) lines.unshift(`<notes>${escapeSpeech(ctx.notes!)}</notes>\n(Above: your private notes from earlier days. Older transcript lines are omitted; key facts and today follow.)`);
+  return lines.join('\n');
 }

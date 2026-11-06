@@ -17,6 +17,10 @@ function responseAt(events: readonly GameEvent[], at: number, req: InputRequest)
   if (first?.type === 'fallback' && first.actorSeatId === req.seatId) return first.payload?.rawOutput as InputResponse;
   const action = first;
   if (!action || action.actorSeatId !== req.seatId) throw new Error(`replay: no action for ${req.id}`);
+  if (req.kind === 'notes') {
+    // truncated notes are stored cut to maxWords; one extra word makes the engine cut them identically
+    return { kind: 'notes', notes: action.payload?.truncated ? `${action.text} …` : action.text };
+  }
   const next = events[at + 1];
   const thought = next?.type === 'thought' && next.replyToSeq === action.seq ? next.text : '';
   if (req.kind === 'choose') return { kind: 'choose', thought, target: action.targetSeatId ?? '' };

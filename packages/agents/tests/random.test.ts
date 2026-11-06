@@ -45,6 +45,7 @@ test('RandomControllers play a full game through drive()', async () => {
 test('transcript uses names and never renders spectator events', () => {
   const t = renderTranscript({
     roster: ctx.roster,
+    day: 1,
     observations: [
       { gameId: 'g', seq: 0, day: 1, phase: 'day', type: 'speech', visibility: { kind: 'public' }, actorSeatId: 's2', text: 'hi', createdAt: '' },
       { gameId: 'g', seq: 1, day: 1, phase: 'day', type: 'thought', visibility: { kind: 'spectator' }, actorSeatId: 's2', text: 'SECRET', createdAt: '' },

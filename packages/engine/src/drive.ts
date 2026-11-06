@@ -21,7 +21,12 @@ export async function drive(state: GameState, responders: ReadonlyMap<string, Re
       res = await responder.respond(contextFor(state, req.seatId), req);
     } catch (err) {
       const thought = `(agent error: ${(err as Error)?.message ?? String(err)})`;
-      res = req.kind === 'speak' ? { kind: 'speak', thought, speech: '' } : { kind: 'choose', thought, target: '' };
+      res =
+        req.kind === 'speak'
+          ? { kind: 'speak', thought, speech: '' }
+          : req.kind === 'notes'
+            ? { kind: 'notes', notes: '' }
+            : { kind: 'choose', thought, target: '' };
     }
     const next = applyResponse(state, req.id, res);
     if (next === state) throw new Error(`engine did not advance on ${req.id}`);

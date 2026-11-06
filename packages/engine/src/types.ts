@@ -44,6 +44,7 @@ export type EventType =
   | 'eliminated'
   | 'no_elimination'
   | 'fallback'
+  | 'notes'
   | 'game_over';
 
 export type Visibility =
@@ -86,6 +87,11 @@ export interface GameConfig {
   maxSpeechChars: number;
   /** 'neutral' gives every seat the same plain persona (benchmark mode, less variance). Default 'default'. */
   personaMode?: 'default' | 'neutral';
+  /**
+   * Notes mode (BRD §7.8): once any seat's visible log exceeds this many (estimated) tokens, every living seat
+   * writes private notes at the end of each day. 0 disables. Default 12000.
+   */
+  notesBudgetTokens?: number;
   /** Stamped on every event. Supplied by the caller so the engine never reads the clock (I4). */
   createdAt: string;
 }
@@ -94,16 +100,18 @@ export type ChooseAction = 'kill' | 'save' | 'investigate' | 'vote';
 
 export type InputRequest =
   | { id: string; seatId: string; kind: 'speak'; channel: 'public' | 'mafia'; maxChars: number }
-  | { id: string; seatId: string; kind: 'choose'; action: ChooseAction; options: string[] };
+  | { id: string; seatId: string; kind: 'choose'; action: ChooseAction; options: string[] }
+  | { id: string; seatId: string; kind: 'notes'; maxWords: number };
 
 export type InputResponse =
   | { kind: 'speak'; thought: string; speech: string; accuses?: string; claimRole?: Role }
-  | { kind: 'choose'; thought: string; target: string };
+  | { kind: 'choose'; thought: string; target: string }
+  | { kind: 'notes'; notes: string };
 
 /** What a queued request step will ask for. Options/ids are materialized when it reaches the head of the queue. */
-export type Ask = 'speak_public' | 'speak_mafia' | ChooseAction;
+export type Ask = 'speak_public' | 'speak_mafia' | 'notes' | ChooseAction;
 
-export type AutoOp = 'start_phase' | 'resolve_night' | 'resolve_vote' | 'check_win';
+export type AutoOp = 'start_phase' | 'resolve_night' | 'resolve_vote' | 'check_win' | 'notes_check';
 
 export type Step =
   | { kind: 'request'; seatId: string; ask: Ask }
@@ -134,5 +142,6 @@ export interface AgentContext {
   day: number;
   phase: Phase;
   observations: GameEvent[];
+  /** This seat's latest notes, once notes mode is active (BRD §7.8). */
   notes?: string;
 }

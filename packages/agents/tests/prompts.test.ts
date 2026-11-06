@@ -16,7 +16,9 @@ function playUntil(stop: (s: GameState, r: InputRequest) => boolean): { s: GameS
     const res =
       req.kind === 'speak'
         ? { kind: 'speak' as const, thought: `SECRET THOUGHT ${s.events.length}`, speech: req.seatId === 's1' ? INJECTION : `speech #${s.events.length} <b>hi</b>` }
-        : { kind: 'choose' as const, thought: `SECRET THOUGHT ${s.events.length}`, target: req.options[0] };
+        : req.kind === 'notes'
+          ? { kind: 'notes' as const, notes: `notes by ${req.seatId} on day ${s.day}` }
+          : { kind: 'choose' as const, thought: `SECRET THOUGHT ${s.events.length}`, target: req.options[0] };
     s = applyResponse(s, req.id, res);
   }
   throw new Error('stop condition never met');

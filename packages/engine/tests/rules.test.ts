@@ -14,7 +14,9 @@ function run(seed: number, pick: (s: GameState, req: Extract<InputRequest, { kin
     s =
       req.kind === 'speak'
         ? applyResponse(s, req.id, { kind: 'speak', thought: '', speech: 'hello' })
-        : applyResponse(s, req.id, { kind: 'choose', thought: '', target: pick(s, req) });
+        : req.kind === 'notes'
+          ? applyResponse(s, req.id, { kind: 'notes', notes: 'n' })
+          : applyResponse(s, req.id, { kind: 'choose', thought: '', target: pick(s, req) });
   }
   return { s, reqs };
 }

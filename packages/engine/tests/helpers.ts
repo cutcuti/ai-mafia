@@ -12,6 +12,7 @@ export function randomResponder(seed: number): Responder {
   return {
     async respond(ctx, req) {
       if (req.kind === 'choose') return { kind: 'choose', thought: 'random pick', target: rng.pick(req.options) };
+      if (req.kind === 'notes') return { kind: 'notes', notes: `day ${ctx.day}: suspect ${rng.pick(ctx.alive)}. ${'filler '.repeat(Math.floor(rng.next() * 200))}` };
       const others = ctx.roster.filter((r) => r.seatId !== ctx.self.seatId && ctx.alive.includes(r.name));
       const x = others.length ? rng.pick(others) : undefined;
       return {

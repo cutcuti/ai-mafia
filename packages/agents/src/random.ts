@@ -19,6 +19,7 @@ export class RandomController implements Controller {
 
   async respond(ctx: AgentContext, req: InputRequest): Promise<InputResponse> {
     if (req.kind === 'choose') return { kind: 'choose', thought: 'random pick', target: this.rng.pick(req.options) };
+    if (req.kind === 'notes') return { kind: 'notes', notes: `Day ${ctx.day}: no idea, vibes only. Alive: ${ctx.alive.join(', ')}.` };
     const others = ctx.roster.filter((r) => r.seatId !== ctx.self.seatId && ctx.alive.includes(r.name));
     const x = others.length ? this.rng.pick(others) : undefined;
     return { kind: 'speak', thought: 'rolling dice', speech: this.rng.pick(LINES).replace('{x}', x?.name ?? 'nobody'), accuses: x?.seatId };

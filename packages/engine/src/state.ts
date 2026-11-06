@@ -168,8 +168,25 @@ function startPhase(d: GameState, phase: 'night' | 'day' | 'vote'): Step[] {
     ...order.map((s): Step => ({ kind: 'request', seatId: s.id, ask: 'vote' })),
     { kind: 'auto', op: 'resolve_vote' },
     { kind: 'auto', op: 'check_win' },
+    { kind: 'auto', op: 'notes_check' },
     { kind: 'auto', op: 'start_phase', phase: 'night' },
   ];
+}
+
+export const NOTES_MAX_WORDS = 150;
+
+/** Rough token estimate (≈4 chars/token) — the engine has no tokenizer and must stay pure. */
+export function estimateTokens(events: readonly GameEvent[]): number {
+  return Math.ceil(events.reduce((n, e) => n + e.text.length + 16, 0) / 4);
+}
+
+/** End of day: once notes mode is on (budget exceeded, or notes already written), every living seat writes notes. */
+function notesCheck(d: GameState): Step[] {
+  const budget = d.config.notesBudgetTokens ?? 12_000;
+  if (budget <= 0) return [];
+  const active =
+    d.events.some((e) => e.type === 'notes') || alive(d).some((s) => estimateTokens(observationsFor(s, d.events)) > budget);
+  return active ? alive(d).map((s): Step => ({ kind: 'request', seatId: s.id, ask: 'notes' })) : [];
 }
 
 function resolveNight(d: GameState) {
@@ -226,6 +243,9 @@ function runAuto(d: GameState, step: Extract<Step, { kind: 'auto' }>) {
       if (w) finish(d, w);
       return;
     }
+    case 'notes_check':
+      d.queue.unshift(...notesCheck(d));
+      return;
   }
 }
 
@@ -268,8 +288,9 @@ function optionsFor(d: GameState, s: Seat, action: ChooseAction): string[] {
 }
 
 function materialize(d: GameState, step: Extract<Step, { kind: 'request' }>): InputRequest {
-  const kind = step.ask === 'speak_public' || step.ask === 'speak_mafia' ? 'speak' : 'choose';
+  const kind = step.ask === 'speak_public' || step.ask === 'speak_mafia' ? 'speak' : step.ask === 'notes' ? 'notes' : 'choose';
   const id = `${d.id}:${d.events.length}:${step.seatId}:${kind}`;
+  if (step.ask === 'notes') return { id, seatId: step.seatId, kind: 'notes', maxWords: NOTES_MAX_WORDS };
   if (step.ask === 'speak_public' || step.ask === 'speak_mafia') {
     return { id, seatId: step.seatId, kind: 'speak', channel: step.ask === 'speak_mafia' ? 'mafia' : 'public', maxChars: d.config.maxSpeechChars };
   }
@@ -313,6 +334,21 @@ function applySpeak(d: GameState, s: Seat, req: Extract<InputRequest, { kind: 's
     payload: Object.keys(payload).length ? payload : undefined,
   });
   if (thought) emit(d, 'thought', SPECTATOR, thought, { actor: s.id, replyToSeq: e.seq, payload: { forType: type } });
+}
+
+function applyNotes(d: GameState, s: Seat, req: Extract<InputRequest, { kind: 'notes' }>, raw: unknown) {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const words = (r.kind === 'notes' && typeof r.notes === 'string' ? r.notes : '').split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    emit(d, 'fallback', SPECTATOR, `${s.name} wrote no valid notes.`, {
+      actor: s.id,
+      payload: { reason: 'empty or invalid notes', rawOutput: safeRaw(raw) },
+    });
+  }
+  const truncated = words.length > req.maxWords;
+  const text = words.length ? words.slice(0, req.maxWords).join(' ') : '(no notes)';
+  // seat-private: only the author ever sees (or is prompted with) their notes — I2 untouched
+  emit(d, 'notes', only(s.id), text, { actor: s.id, payload: truncated ? { truncated: true } : undefined });
 }
 
 function applyChoose(d: GameState, s: Seat, req: Extract<InputRequest, { kind: 'choose' }>, raw: unknown) {
@@ -416,6 +452,7 @@ export function applyResponse(state: GameState, requestId: string, response: Inp
   d.queue.shift();
   const s = seat(d, req.seatId);
   if (req.kind === 'speak') applySpeak(d, s, req, response);
+  else if (req.kind === 'notes') applyNotes(d, s, req, response);
   else applyChoose(d, s, req, response);
   d.version += 1;
   settle(d);
@@ -426,6 +463,8 @@ export function applyResponse(state: GameState, requestId: string, response: Inp
 export function contextFor(state: GameState, seatId: string): AgentContext {
   const s = state.seats.find((x) => x.id === seatId);
   if (!s) throw new Error(`unknown seat ${seatId}`);
+  const observations = observationsFor(s, state.events);
+  const notes = observations.findLast((e) => e.type === 'notes' && e.actorSeatId === s.id)?.text;
   return {
     self: { seatId: s.id, name: s.name, role: s.role, persona: s.persona },
     teammates: s.role === 'mafia' ? state.seats.filter((o) => o.role === 'mafia' && o.id !== s.id).map((o) => o.name) : [],
@@ -433,6 +472,7 @@ export function contextFor(state: GameState, seatId: string): AgentContext {
     roster: state.seats.map((o) => ({ seatId: o.id, name: o.name })),
     day: state.day,
     phase: state.phase,
-    observations: observationsFor(s, state.events),
+    observations,
+    ...(notes !== undefined ? { notes } : {}),
   };
 }

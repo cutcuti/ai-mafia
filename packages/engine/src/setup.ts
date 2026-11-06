@@ -52,6 +52,7 @@ export function makeConfig(o: Partial<GameConfig> & { seed: number }): GameConfi
     maxDays: o.maxDays ?? 8,
     maxSpeechChars: o.maxSpeechChars ?? 280,
     personaMode: o.personaMode ?? 'default',
+    notesBudgetTokens: o.notesBudgetTokens ?? 12_000,
     createdAt: o.createdAt ?? '1970-01-01T00:00:00.000Z',
   };
 }
