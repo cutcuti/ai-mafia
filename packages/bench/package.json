@@ -1,0 +1,19 @@
+{
+  "name": "@ai-mafia/bench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Benchmark runner, metrics, ratings and reports.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@ai-mafia/agents": "workspace:*",
+    "@ai-mafia/engine": "workspace:*",
+    "openskill": "^5.0.1"
+  }
+}

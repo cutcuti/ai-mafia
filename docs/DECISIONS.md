@@ -23,3 +23,6 @@ One line each: date — decision — reason.
 - 2026-11-06 — Claude Opus 5.5 / Sonnet 5.5 / Fable 5.1 return 400 on forced `tool_choice`; those registry entries use `toolChoice: 'auto'` + an explicit 'call the tool' instruction, with zod validation + repair retry as the safety net. Haiku 5.5 keeps forced tools.
 - 2026-11-06 — Non-Anthropic prices come from OpenRouter's public /models list (OpenAI direct assumed equal to OpenRouter pass-through); Gemini runs via OpenRouter until a Google adapter exists. AgentCall records are emitted per provider attempt (a repair retry is its own call).
 - 2026-11-06 — Notes-mode trigger uses a char/4 token estimate of a seat's visible log (engine stays pure, no tokenizer); once any seat crosses the budget, all living seats write notes every remaining day end. Notes-mode prompts keep key facts (setup, own role/team, deaths) plus the current day.
+- 2026-11-06 — `--games` is the total game count; for h2h it must be even (games/2 seeds, each played both ways) — matches "≥100 games per pairing" in G2.
+- 2026-11-06 — h2h seats models by role using a role-only probe of the seed (roles never depend on controllers); ffa draws seat models from an RNG stream independent of the game's own.
+- 2026-11-06 — `random` is a valid bench model id — free baseline and what CI benches with.

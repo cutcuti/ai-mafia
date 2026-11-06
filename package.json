@@ -4,11 +4,14 @@
   "description": "AI agents play Mafia. Watch them lie.",
   "type": "module",
   "packageManager": "pnpm@10.34.9",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "pnpm -r --workspace-concurrency=1 run test",
     "typecheck": "pnpm -r run typecheck",
-    "game": "tsx --env-file-if-exists=.env packages/agents/src/cli.ts"
+    "game": "tsx --env-file-if-exists=.env packages/agents/src/cli.ts",
+    "bench": "tsx --env-file-if-exists=.env packages/bench/src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
