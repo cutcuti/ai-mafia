@@ -1,9 +1,19 @@
-import { Avatar } from '@/components/Avatar';
-import { ROLE_META } from '@/lib/theme';
+import Link from 'next/link';
+import { modelName } from '@/lib/roster';
+import { getStore } from '@/lib/store';
+import type { GameSummary } from '@/lib/types';
 
-const DEMO = ['Zara', 'Omar', 'Priya', 'Leo', 'Maya', 'Kai'];
+export const dynamic = 'force-dynamic';
 
-export default function Home() {
+const OUTCOME: Record<string, string> = { mafia: '🔪 Mafia won', town: '🏘️ Town won', draw: '🤝 Draw' };
+
+export default async function Home() {
+  let games: GameSummary[] = [];
+  try {
+    games = (await getStore().listGames({ limit: 12 })).games;
+  } catch {
+    games = [];
+  }
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-16 sm:px-6">
       <header className="flex flex-col gap-3">
@@ -15,18 +25,28 @@ export default function Home() {
         </h1>
         <p className="max-w-xl text-lg text-muted">Watch them accuse, deflect and backstab, then read every agent&apos;s private thoughts while it lies to your face.</p>
       </header>
-      <div className="flex flex-wrap items-center gap-3" aria-label="Seat palette">
-        {DEMO.map((n, i) => (
-          <Avatar key={n} seatId={`s${i + 1}`} name={n} seed={n.toLowerCase()} size={52} dead={i === 3} />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(ROLE_META).map(([role, m]) => (
-          <span key={role} className="rounded-full border border-line bg-panel px-3 py-1 text-sm font-semibold" style={{ color: m.color }}>
-            {m.emoji} {m.label}
-          </span>
-        ))}
-      </div>
+
+      <section aria-labelledby="recent">
+        <h2 id="recent" className="mb-4 font-display text-2xl font-extrabold">
+          Recent games
+        </h2>
+        {games.length === 0 ? (
+          <p className="text-muted">No games yet.</p>
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {games.map((g) => (
+              <li key={g.id}>
+                <Link href={`/g/${g.id}`} className="flex flex-col gap-1 rounded-2xl border border-line bg-panel p-4 transition-colors hover:bg-panel-2">
+                  <span className="truncate font-semibold">{g.models.map(modelName).join(' vs ')}</span>
+                  <span className="text-sm text-muted">
+                    {g.outcome ? OUTCOME[g.outcome] : 'Live'} · {g.preset} · {g.format ?? g.mode}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </main>
   );
 }
