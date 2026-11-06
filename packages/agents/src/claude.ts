@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { chooseTask, speakTask, systemPrompt, userPrompt } from './prompts.js';
-import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '@ai-mafia/engine';
+import type { Action, Agent, V0AgentContext, ChooseResult, SpeakResult } from '@ai-mafia/engine';
 
 /**
  * Claude-backed player. Uses forced tool use so every reply is structured
@@ -16,7 +16,7 @@ export class ClaudeAgent implements Agent {
     this.client = client ?? new Anthropic();
   }
 
-  async speak(ctx: AgentContext, channel: 'public' | 'mafia'): Promise<SpeakResult> {
+  async speak(ctx: V0AgentContext, channel: 'public' | 'mafia'): Promise<SpeakResult> {
     const input = await this.call(ctx, speakTask(channel), {
       name: 'speak',
       description: 'Say something to the table (or to your mafia teammate at night).',
@@ -32,7 +32,7 @@ export class ClaudeAgent implements Agent {
     return { thought: String(input.thought ?? ''), speech: String(input.speech ?? '...') };
   }
 
-  async choose(ctx: AgentContext, action: Action, options: string[]): Promise<ChooseResult> {
+  async choose(ctx: V0AgentContext, action: Action, options: string[]): Promise<ChooseResult> {
     const input = await this.call(ctx, chooseTask(action), {
       name: action,
       description: `Pick a target for: ${action}.`,
@@ -48,7 +48,7 @@ export class ClaudeAgent implements Agent {
     return { thought: String(input.thought ?? ''), target: String(input.target ?? '') };
   }
 
-  private async call(ctx: AgentContext, task: string, tool: Anthropic.Tool): Promise<Record<string, unknown>> {
+  private async call(ctx: V0AgentContext, task: string, tool: Anthropic.Tool): Promise<Record<string, unknown>> {
     const res = await this.client.messages.create({
       model: this.model,
       max_tokens: 600,

@@ -4,18 +4,18 @@ import { canSee } from '../src/events.js';
 import { Game, checkWinner, tally } from '../src/game.js';
 import { makeRng } from '../src/rng.js';
 import { createPlayers } from '../src/setup.js';
-import type { Agent, AgentContext, Player } from '../src/types.js';
+import type { Agent, V0AgentContext, Player } from '../src/types.js';
 import { RandomAgent } from './helpers.js';
 
 /** Wraps an agent and records every context it was handed. */
 class SpyAgent implements Agent {
-  seen: AgentContext[] = [];
+  seen: V0AgentContext[] = [];
   constructor(private inner: Agent) {}
-  speak(ctx: AgentContext, ch: 'public' | 'mafia') {
+  speak(ctx: V0AgentContext, ch: 'public' | 'mafia') {
     this.seen.push(ctx);
     return this.inner.speak(ctx, ch);
   }
-  choose(ctx: AgentContext, a: Parameters<Agent['choose']>[1], o: string[]) {
+  choose(ctx: V0AgentContext, a: Parameters<Agent['choose']>[1], o: string[]) {
     this.seen.push(ctx);
     return this.inner.choose(ctx, a, o);
   }

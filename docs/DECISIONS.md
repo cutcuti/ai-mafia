@@ -6,3 +6,6 @@ One line each: date — decision — reason.
 - 2026-11-06 — Workspace packages export TS source directly (`exports: ./src/index.ts`), no build step — tsx runs it, tsc typechecks it; simplest for M0.
 - 2026-11-06 — CLI lives in `packages/agents/src/cli.ts` until `packages/bench` exists — it needs both engine and agents.
 - 2026-11-06 — Engine tests use their own random responder (`tests/helpers.ts`) — engine must not depend on agents.
+- 2026-11-06 — Queue request steps store `{seatId, ask}`, not a full InputRequest — BRD's `{kind:'request', ...InputRequest}` collides on `kind`, and options/ids must be computed when the step reaches the head (alive set changes).
+- 2026-11-06 — `GameConfig.createdAt` is supplied by the caller and stamped on every event — engine may not read the clock (I4); DB `created_at` still records insert time.
+- 2026-11-06 — `AgentContext` gains `roster` (seatId↔name, public via game_start) — controllers need it to map names to seat ids at the boundary.

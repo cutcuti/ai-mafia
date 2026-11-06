@@ -1,5 +1,5 @@
 import type { Rng } from '../src/index.js';
-import type { Action, Agent, AgentContext, ChooseResult, SpeakResult } from '../src/index.js';
+import type { Action, Agent, V0AgentContext, ChooseResult, SpeakResult } from '../src/index.js';
 
 const LINES = [
   'idk, something feels off about {x}',
@@ -13,13 +13,13 @@ const LINES = [
 export class RandomAgent implements Agent {
   constructor(private readonly rng: Rng) {}
 
-  async speak(ctx: AgentContext): Promise<SpeakResult> {
+  async speak(ctx: V0AgentContext): Promise<SpeakResult> {
     const others = ctx.alive.filter((id) => id !== ctx.self.id);
     const x = others.length ? this.rng.pick(others) : 'nobody';
     return { thought: 'rolling dice', speech: this.rng.pick(LINES).replace('{x}', x) };
   }
 
-  async choose(_ctx: AgentContext, _action: Action, options: string[]): Promise<ChooseResult> {
+  async choose(_ctx: V0AgentContext, _action: Action, options: string[]): Promise<ChooseResult> {
     return { thought: 'random pick', target: this.rng.pick(options) };
   }
 }

@@ -1,6 +1,18 @@
-/** Seeded RNG (mulberry32) so games are reproducible. */
-export function makeRng(seed: number) {
-  let a = seed >>> 0;
+/**
+ * Seeded RNG (mulberry32). Its entire internal state is one uint32, so it can be
+ * stored in GameState and resumed exactly — required for serverless stepping and replay.
+ */
+export interface Rng {
+  /** Float in [0, 1). Advances the state. */
+  next(): number;
+  pick<T>(arr: readonly T[]): T;
+  shuffle<T>(arr: readonly T[]): T[];
+  /** Current internal state (uint32). `createRng(rng.state)` continues the same sequence. */
+  readonly state: number;
+}
+
+export function createRng(state: number): Rng {
+  let a = state >>> 0;
   const next = () => {
     a = (a + 0x6d2b79f5) >>> 0;
     let t = a;
@@ -11,6 +23,7 @@ export function makeRng(seed: number) {
   return {
     next,
     pick<T>(arr: readonly T[]): T {
+      if (arr.length === 0) throw new Error('rng.pick on empty array');
       return arr[Math.floor(next() * arr.length)];
     },
     shuffle<T>(arr: readonly T[]): T[] {
@@ -21,6 +34,11 @@ export function makeRng(seed: number) {
       }
       return out;
     },
+    get state() {
+      return a;
+    },
   };
 }
-export type Rng = ReturnType<typeof makeRng>;
+
+/** Seed → RNG. Same seed, same sequence. */
+export const makeRng = (seed: number): Rng => createRng(seed);

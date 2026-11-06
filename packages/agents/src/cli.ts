@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { Game, createPlayers, makeRng } from '@ai-mafia/engine';
-import type { Agent, GameEvent } from '@ai-mafia/engine';
+import type { Agent, V0Event } from '@ai-mafia/engine';
 import { ClaudeAgent } from './claude.js';
 import { RandomAgent } from './random.js';
 
@@ -30,7 +30,7 @@ for (const p of players) {
 }
 
 const c = { dim: '\x1b[2m', red: '\x1b[31m', yellow: '\x1b[33m', cyan: '\x1b[36m', bold: '\x1b[1m', reset: '\x1b[0m' };
-function print(e: GameEvent) {
+function print(e: V0Event) {
   const v = e.visibility.kind;
   if (v === 'spectator' && !values.thoughts) return;
   if (v === 'player' || v === 'team') {

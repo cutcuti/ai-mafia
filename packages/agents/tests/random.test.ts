@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { makeRng } from '@ai-mafia/engine';
-import type { AgentContext } from '@ai-mafia/engine';
+import type { V0AgentContext } from '@ai-mafia/engine';
 import { RandomAgent } from '../src/random.js';
 
-const ctx: AgentContext = {
+const ctx: V0AgentContext = {
   self: { id: 'Zara', role: 'villager', persona: '' },
   teammates: [],
   alive: ['Zara', 'Omar', 'Priya'],

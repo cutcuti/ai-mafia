@@ -1,7 +1,7 @@
-import type { GameEvent, Player } from './types.js';
+import type { V0Event, Player } from './types.js';
 
 /** Can this player see this event? Single source of truth for information isolation. */
-export function canSee(player: Player, e: GameEvent): boolean {
+export function canSee(player: Player, e: V0Event): boolean {
   switch (e.visibility.kind) {
     case 'public':
       return true;
@@ -14,12 +14,12 @@ export function canSee(player: Player, e: GameEvent): boolean {
   }
 }
 
-export function observationsFor(player: Player, events: GameEvent[]): GameEvent[] {
+export function observationsFor(player: Player, events: V0Event[]): V0Event[] {
   return events.filter((e) => canSee(player, e));
 }
 
 /** Render events as a transcript an LLM (or a human) can read. */
-export function renderTranscript(events: GameEvent[]): string {
+export function renderTranscript(events: V0Event[]): string {
   return events
     .map((e) => {
       const tag = `[Day ${e.day} · ${e.phase}]`;

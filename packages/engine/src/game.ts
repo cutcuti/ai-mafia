@@ -3,27 +3,27 @@ import type { Rng } from './rng.js';
 import type {
   Action,
   Agent,
-  AgentContext,
+  V0AgentContext,
   ChooseResult,
-  EventType,
-  GameEvent,
+  V0EventType,
+  V0Event,
   GameResult,
   Phase,
   Player,
   Team,
-  Visibility,
+  V0Visibility,
 } from './types.js';
 
 export interface GameOptions {
   discussionRounds?: number; // speeches per player per day
   maxDays?: number;
-  onEvent?: (e: GameEvent) => void; // live streaming hook (CLI now, websockets later)
+  onEvent?: (e: V0Event) => void; // live streaming hook (CLI now, websockets later)
 }
 
-const PUBLIC: Visibility = { kind: 'public' };
-const MAFIA: Visibility = { kind: 'team', team: 'mafia' };
-const SPECTATOR: Visibility = { kind: 'spectator' };
-const only = (playerId: string): Visibility => ({ kind: 'player', playerId });
+const PUBLIC: V0Visibility = { kind: 'public' };
+const MAFIA: V0Visibility = { kind: 'team', team: 'mafia' };
+const SPECTATOR: V0Visibility = { kind: 'spectator' };
+const only = (playerId: string): V0Visibility => ({ kind: 'player', playerId });
 
 export function checkWinner(players: Player[]): Team | null {
   const alive = players.filter((p) => p.alive);
@@ -49,7 +49,7 @@ export function tally(votes: string[]): string | null {
 }
 
 export class Game {
-  readonly events: GameEvent[] = [];
+  readonly events: V0Event[] = [];
   private day = 0;
   private phase: Phase = 'setup';
   private readonly rounds: number;
@@ -200,7 +200,7 @@ export class Game {
     return r;
   }
 
-  private ctx(p: Player): AgentContext {
+  private ctx(p: Player): V0AgentContext {
     return {
       self: { id: p.id, role: p.role, persona: p.persona },
       teammates: p.role === 'mafia' ? this.players.filter((o) => o.role === 'mafia' && o.id !== p.id).map((o) => o.id) : [],
@@ -211,8 +211,8 @@ export class Game {
     };
   }
 
-  private emit(type: EventType, visibility: Visibility, text: string, actor?: string, target?: string) {
-    const e: GameEvent = { seq: this.events.length, day: this.day, phase: this.phase, type, visibility, text, actor, target };
+  private emit(type: V0EventType, visibility: V0Visibility, text: string, actor?: string, target?: string) {
+    const e: V0Event = { seq: this.events.length, day: this.day, phase: this.phase, type, visibility, text, actor, target };
     this.events.push(e);
     this.opts.onEvent?.(e);
   }

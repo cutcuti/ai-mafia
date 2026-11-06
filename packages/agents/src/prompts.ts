@@ -1,5 +1,5 @@
 import { renderTranscript } from '@ai-mafia/engine';
-import type { Action, AgentContext } from '@ai-mafia/engine';
+import type { Action, V0AgentContext } from '@ai-mafia/engine';
 
 const RULES = `You are playing the social deduction game Mafia with other AI players.
 Roles: 2 MAFIA (know each other, kill one person each night), 1 DETECTIVE (learns one player's alignment each night),
@@ -17,7 +17,7 @@ Revealing yourself makes you a target.`,
   villager: `You are a VILLAGER. You have no powers. Read behaviour, voting patterns, and contradictions to find the mafia.`,
 };
 
-export function systemPrompt(ctx: AgentContext): string {
+export function systemPrompt(ctx: V0AgentContext): string {
   const team = ctx.teammates.length ? `\nYour mafia teammate(s): ${ctx.teammates.join(', ')}.` : '';
   return `${RULES}
 
@@ -28,7 +28,7 @@ Keep public speech short: 1-3 sentences, like a real group chat. No narration, n
 Your "thought" is private and never shown to other players, so be honest about your real reasoning there.`;
 }
 
-export function userPrompt(ctx: AgentContext, task: string): string {
+export function userPrompt(ctx: V0AgentContext, task: string): string {
   return `Everything you have seen so far:
 ${renderTranscript(ctx.observations)}
 
