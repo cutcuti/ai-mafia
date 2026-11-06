@@ -27,3 +27,6 @@ One line each: date — decision — reason.
 - 2026-11-06 — h2h seats models by role using a role-only probe of the seed (roles never depend on controllers); ffa draws seat models from an RNG stream independent of the game's own.
 - 2026-11-06 — `random` is a valid bench model id — free baseline and what CI benches with.
 - 2026-11-06 — Budget guard: one probe game always runs; before any game finishes the expected cost is a registry-price prior (8 calls/seat × 2.5k in / 300 out tokens), after that the observed average; in-flight games count as committed spend and workers wait (not stop) while estimates may still improve.
+- 2026-11-06 — Win records count one trial per (model, game, team), not per seat — otherwise h2h would double n and shrink CIs dishonestly.
+- 2026-11-06 — Deception expected votes = Σ over vote days of (other voters ÷ (voters − 1)) (uniform random voting ⇒ ≈1 per day alive); score can go negative for heavily suspected mafia.
+- 2026-11-06 — Survival = day phases a seat reached alive. Detective base rate = mafia share of the engine's actual candidate pool (fresh alive others). Persuasion uses a seat's last accusation of the day. Lie = mafia public speech claiming any non-mafia role. Rates are pooled (Σnum/Σden); deception and survival are means.
