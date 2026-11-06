@@ -1,31 +1,94 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GameEvent } from '@ai-mafia/engine';
 import { modelName, rosterFrom } from '@/lib/roster';
-import { buildTimeline, stateAt } from '@/lib/timeline';
+import { beatDelayMs, buildTimeline, indexForSeq, markers as timelineMarkers, stateAt } from '@/lib/timeline';
 import type { GameMeta } from '@/lib/views';
 import { BeatRow } from './BeatRow';
+import { Controls, type Speed } from './Controls';
 import { SeatRail } from './SeatRail';
 
 export interface ViewerProps {
   meta: GameMeta;
   /** Public events, filtered on the server. */
   events: GameEvent[];
+  /** ?t=<seq> deep link: open paused at that moment. */
+  initialSeq?: number;
 }
 
-export function Viewer({ meta, events }: ViewerProps) {
+export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   const seats = useMemo(() => rosterFrom(meta.seats, events), [meta.seats, events]);
   const seatMap = useMemo(() => new Map(seats.map((s) => [s.seatId, s])), [seats]);
+  const seatIds = useMemo(() => seats.map((s) => s.seatId), [seats]);
   const beats = useMemo(() => buildTimeline(events), [events]);
-  const [count] = useState(beats.length);
-  const state = useMemo(() => stateAt(beats, seats.map((s) => s.seatId), count), [beats, seats, count]);
-  const shown = beats.slice(0, count);
+  const marks = useMemo(() => timelineMarkers(beats), [beats]);
+
+  const [count, setCount] = useState(() => (initialSeq !== undefined ? indexForSeq(beats, initialSeq) : 1));
+  const [playing, setPlaying] = useState(initialSeq === undefined);
+  const [speed, setSpeed] = useState<Speed>(1);
+  const total = beats.length;
+  const state = useMemo(() => stateAt(beats, seatIds, count), [beats, seatIds, count]);
+
+  // playback clock: each beat stays on screen for its reading time
+  useEffect(() => {
+    if (!playing) return;
+    if (count >= total) {
+      setPlaying(false);
+      return;
+    }
+    if (speed === Infinity) {
+      setCount(total);
+      return;
+    }
+    const t = setTimeout(() => setCount((c) => Math.min(total, c + 1)), beatDelayMs(beats[Math.max(0, count - 1)], speed));
+    return () => clearTimeout(t);
+  }, [playing, count, total, speed, beats]);
+
+  const seek = useCallback((n: number) => setCount(Math.max(0, Math.min(total, n))), [total]);
+  const step = useCallback(
+    (d: number) => {
+      setPlaying(false);
+      setCount((c) => Math.max(0, Math.min(total, c + d)));
+    },
+    [total],
+  );
+  const playPause = useCallback(() => {
+    setPlaying((p) => {
+      if (!p && count >= total) setCount(1); // replay from the start
+      return !p;
+    });
+  }, [count, total]);
+
+  // keyboard: space, ←, →  (ignored while typing or when a control has focus)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.closest('input, textarea, select, button, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey)) return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        playPause();
+      } else if (e.key === 'ArrowRight') step(1);
+      else if (e.key === 'ArrowLeft') step(-1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [playPause, step]);
+
+  const share = useCallback(
+    (seq: number) => {
+      const url = `${window.location.origin}/g/${meta.id}?t=${seq}`;
+      void navigator.clipboard?.writeText(url);
+    },
+    [meta.id],
+  );
 
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'end' });
+    end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
   }, [count]);
+
+  const shown = beats.slice(0, count);
 
   return (
     <div className="stage flex h-dvh flex-col" data-phase={state.phase}>
@@ -43,8 +106,8 @@ export function Viewer({ meta, events }: ViewerProps) {
           <SeatRail seats={seats} state={state} spectator={false} />
         </aside>
 
-        <main className="min-h-0 overflow-y-auto px-3 sm:px-6" aria-live="polite">
-          <div className="mx-auto max-w-3xl pb-24">
+        <main className="min-h-0 overflow-y-auto px-3 sm:px-6" aria-live="polite" aria-relevant="additions">
+          <div className="mx-auto max-w-3xl pb-10">
             {shown.map((b) => (
               <BeatRow
                 key={b.event.seq}
@@ -54,7 +117,7 @@ export function Viewer({ meta, events }: ViewerProps) {
                 thoughtRevealed={false}
                 onRevealThought={() => {}}
                 lie={false}
-                onShare={() => {}}
+                onShare={() => share(b.event.seq)}
               />
             ))}
             <div ref={end} />
@@ -71,6 +134,21 @@ export function Viewer({ meta, events }: ViewerProps) {
           </div>
         </aside>
       </div>
+
+      <Controls
+        count={count}
+        total={total}
+        playing={playing}
+        speed={speed}
+        markers={marks}
+        onPlayPause={playPause}
+        onStep={step}
+        onSeek={(n) => {
+          setPlaying(false);
+          seek(n);
+        }}
+        onSpeed={setSpeed}
+      />
     </div>
   );
 }

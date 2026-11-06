@@ -26,8 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title, description: 'Six AIs play Mafia. Read their private thoughts while they lie to each other.' };
 }
 
-export default async function GamePage({ params }: Props) {
+export default async function GamePage({ params, searchParams }: Props) {
   const data = await load((await params).id);
   if (!data) notFound();
-  return <Viewer meta={data.meta} events={data.events} />;
+  const t = Number((await searchParams).t);
+  return <Viewer meta={data.meta} events={data.events} initialSeq={Number.isInteger(t) && t >= 0 ? t : undefined} />;
 }
