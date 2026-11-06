@@ -29,6 +29,12 @@ export interface BenchOptions {
   outDir?: string; // default "games"
   dryRun?: boolean;
   logRaw?: boolean;
+  /** Games in flight at once (BRD §7.6, default 4). Calls inside a game stay sequential. */
+  concurrency?: number;
+  /** Hard stop: no new game launches once spend (+ the expected cost of one more game) would exceed this. */
+  budgetUsd?: number;
+  /** Progress hook: called as each game finishes. */
+  onGame?: (r: GameRecord, done: number, total: number, spentUsd: number) => void;
   /** Override controller construction (tests). */
   makeResponder?: (modelId: string, seat: number, seed: number, onCall: (c: AgentCall) => void) => Responder;
   /** Clock for timestamps (tests). Never used inside the engine. */
@@ -147,7 +153,12 @@ function responderFor(o: BenchOptions, modelId: string, seat: number, seed: numb
 }
 
 /** Play one planned game to the end and return its record (not yet written). */
-export async function runGame(spec: GameSpec, o: BenchOptions, runId = o.runId ?? defaultRunId(o)): Promise<GameRecord> {
+export async function runGame(
+  spec: GameSpec,
+  o: BenchOptions,
+  runId = o.runId ?? defaultRunId(o),
+  onCall?: (c: AgentCall) => void,
+): Promise<GameRecord> {
   const now = o.now ?? (() => new Date());
   const startedAt = now().toISOString();
   const controllers: Controller[] = spec.seatModels.map((m) => (m === RANDOM ? { kind: 'random' } : { kind: 'model', modelId: m }));
@@ -162,7 +173,11 @@ export async function runGame(spec: GameSpec, o: BenchOptions, runId = o.runId ?
   });
   const start = createGame(config);
   const meter = new CostMeter();
-  const responders = new Map(start.seats.map((s, i) => [s.id, responderFor(o, spec.seatModels[i], i, spec.seed, meter.add)]));
+  const log = (c: AgentCall) => {
+    meter.add(c);
+    onCall?.(c);
+  };
+  const responders = new Map(start.seats.map((s, i) => [s.id, responderFor(o, spec.seatModels[i], i, spec.seed, log)]));
   const end = await drive(start, responders);
   return {
     schema: 1,
@@ -197,18 +212,97 @@ export function writeRecord(outDir: string, r: GameRecord): string {
 
 export interface BenchResult {
   runId: string;
+  /** Finished games, in plan order. */
   records: GameRecord[];
+  planned: number;
+  /** Games never launched because of the budget. */
+  skippedForBudget: number;
+  spentUsd: number;
 }
 
-/** Run every planned game sequentially and write each to `<outDir>/<runId>/<gameId>.json`. */
+/** Rough calls per seat per game and tokens per call, used only to guard the budget before any game has finished. */
+const PRIOR = { callsPerSeat: 8, inputTokens: 2500, outputTokens: 300 };
+
+/** A-priori cost of one game from registry prices (random seats cost nothing). Replaced by the observed average once games finish. */
+export function estimateGameCostUsd(spec: GameSpec): number {
+  return spec.seatModels.reduce((sum, m) => {
+    if (m === RANDOM) return sum;
+    const { inputPerMTok, outputPerMTok } = getModel(m).pricing;
+    return sum + (PRIOR.callsPerSeat * (PRIOR.inputTokens * inputPerMTok + PRIOR.outputTokens * outputPerMTok)) / 1e6;
+  }, 0);
+}
+
+/**
+ * Run the plan with up to `concurrency` games in flight, writing each finished game to `<outDir>/<runId>/<gameId>.json`.
+ * Budget: live spend is summed call by call. A game launches only if
+ *   finished cost + Σ in-flight max(spent so far, expected) + expected(next) ≤ budget,
+ * where "expected" is the observed average game cost (or the registry-price prior before any game finishes).
+ * One probe game always runs; a worker that doesn't fit waits for in-flight games (estimates improve) and only
+ * stops when nothing in flight could change the answer. In-flight games always finish (BRD §8.2).
+ */
 export async function runBench(o: BenchOptions): Promise<BenchResult> {
   const runId = o.runId ?? defaultRunId(o);
   const outDir = o.outDir ?? 'games';
-  const records: GameRecord[] = [];
-  for (const spec of planGames(o)) {
-    const r = await runGame(spec, o, runId);
-    writeRecord(outDir, r);
-    records.push(r);
+  const specs = planGames(o);
+  const concurrency = Math.max(1, o.concurrency ?? 4);
+  const budget = o.budgetUsd ?? Infinity;
+
+  let spent = 0;
+  let finishedCost = 0;
+  let finished = 0;
+  let next = 0;
+  let stopped = false;
+  const done = new Map<number, GameRecord>();
+  const inFlight = new Map<number, number>(); // spec index → live spend
+
+  const expected = (i: number) => (finished ? finishedCost / finished : estimateGameCostUsd(specs[i]));
+  let wake: (() => void)[] = [];
+  const notify = () => {
+    const w = wake;
+    wake = [];
+    for (const f of w) f();
+  };
+
+  /** 'go' launch now · 'wait' until an in-flight game finishes (estimates will improve) · 'stop' for good. */
+  const decide = (i: number): 'go' | 'wait' | 'stop' => {
+    if (stopped || spent >= budget) return 'stop';
+    if (finished === 0 && inFlight.size === 0) return 'go'; // one probe game always runs so costs get measured
+    let committed = finishedCost;
+    for (const [j, live] of inFlight) committed += Math.max(live, expected(j));
+    if (committed + expected(i) <= budget) return 'go';
+    return inFlight.size ? 'wait' : 'stop';
+  };
+
+  async function worker() {
+    while (next < specs.length) {
+      const d = decide(next);
+      if (d === 'stop') {
+        stopped = true;
+        notify();
+        return;
+      }
+      if (d === 'wait') {
+        await new Promise<void>((r) => wake.push(r));
+        continue;
+      }
+      const i = next++;
+      inFlight.set(i, 0);
+      const r = await runGame(specs[i], o, runId, (c) => {
+        spent += c.costUsd;
+        inFlight.set(i, (inFlight.get(i) ?? 0) + c.costUsd);
+      });
+      inFlight.delete(i);
+      writeRecord(outDir, r);
+      done.set(i, r);
+      finished++;
+      finishedCost += r.costUsd;
+      o.onGame?.(r, done.size, specs.length, spent);
+      notify();
+    }
+    notify();
   }
-  return { runId, records };
+  await Promise.all(Array.from({ length: Math.min(concurrency, specs.length) }, worker));
+
+  const records = [...done.entries()].sort((a, b) => a[0] - b[0]).map(([, r]) => r);
+  return { runId, records, planned: specs.length, skippedForBudget: specs.length - records.length, spentUsd: spent };
 }

@@ -10,6 +10,8 @@ const HELP = `pnpm bench -- --format <h2h|ffa|self> [options]
   --games <n>         total games (h2h: even; n/2 seeds × both directions)   [default 10]
   --preset <name>     ${PRESET_NAMES.join(' | ')}                              [default classic6]
   --seed-base <n>     first seed; runs are reproducible                       [default 1]
+  --concurrency <n>   games in parallel                                       [default 4]
+  --budget-usd <x>    hard spend cap: stop launching games, finish in-flight   [default none]
   --neutral           neutral personas (less variance)
   --run-id <id>       output folder name                                      [default derived from options]
   --out <dir>         games root                                              [default games]
@@ -28,6 +30,8 @@ const { values } = parseArgs({
     preset: { type: 'string', default: 'classic6' },
     'seed-base': { type: 'string', default: '1' },
     neutral: { type: 'boolean', default: false },
+    concurrency: { type: 'string', default: '4' },
+    'budget-usd': { type: 'string' },
     'run-id': { type: 'string' },
     out: { type: 'string', default: 'games' },
     'dry-run': { type: 'boolean', default: false },
@@ -59,7 +63,14 @@ const opts: BenchOptions = {
   outDir: values.out,
   dryRun: values['dry-run'],
   logRaw: true, // BRD §7.7: raw request/response kept in bench mode
+  concurrency: Number(values.concurrency),
+  ...(values['budget-usd'] !== undefined ? { budgetUsd: Number(values['budget-usd']) } : {}),
+  onGame: (r, done, total, spent) => {
+    const cap = opts.budgetUsd !== undefined ? ` of $${opts.budgetUsd}` : '';
+    process.stdout.write(`\r  ${done}/${total} games · $${spent.toFixed(4)}${cap} · last: ${r.outcome}   `);
+  },
 };
+if (opts.budgetUsd !== undefined && !(opts.budgetUsd >= 0)) fail('--budget-usd must be a number ≥ 0');
 opts.runId = values['run-id'] ?? defaultRunId(opts);
 
 // fail fast on missing keys
@@ -80,8 +91,10 @@ try {
 } catch (e) {
   fail((e as Error).message);
 }
+process.stdout.write('\n');
+if (result.skippedForBudget) console.log(`budget reached: ${result.skippedForBudget} of ${result.planned} games not launched`);
 const tally = { town: 0, mafia: 0, draw: 0 };
 for (const r of result.records) tally[r.outcome]++;
-const cost = result.records.reduce((a, r) => a + r.costUsd, 0);
+const cost = result.spentUsd;
 console.log(`run ${result.runId}: ${result.records.length} games · town ${tally.town} · mafia ${tally.mafia} · draw ${tally.draw} · $${cost.toFixed(4)}${opts.dryRun ? ' (simulated)' : ''}`);
 console.log(`games → ${opts.outDir}/${result.runId}/`);

@@ -26,3 +26,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — `--games` is the total game count; for h2h it must be even (games/2 seeds, each played both ways) — matches "≥100 games per pairing" in G2.
 - 2026-11-06 — h2h seats models by role using a role-only probe of the seed (roles never depend on controllers); ffa draws seat models from an RNG stream independent of the game's own.
 - 2026-11-06 — `random` is a valid bench model id — free baseline and what CI benches with.
+- 2026-11-06 — Budget guard: one probe game always runs; before any game finishes the expected cost is a registry-price prior (8 calls/seat × 2.5k in / 300 out tokens), after that the observed average; in-flight games count as committed spend and workers wait (not stop) while estimates may still improve.
