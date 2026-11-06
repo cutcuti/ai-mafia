@@ -7,6 +7,7 @@ import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timeli
 import type { GameMeta } from '@/lib/views';
 import { BeatRow } from './BeatRow';
 import { Controls, type Speed } from './Controls';
+import { GamePanel } from './GamePanel';
 import { SeatRail } from './SeatRail';
 
 export interface ViewerProps {
@@ -239,14 +240,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           </div>
         </main>
 
-        <aside className="hidden border-l border-line/60 p-4 lg:block">
-          <div className="rounded-2xl border border-line bg-panel p-4">
-            <div className="text-xs uppercase tracking-widest text-muted">Now</div>
-            <div className="mt-1 font-display text-2xl font-extrabold">
-              {state.phase === 'night' ? `🌙 Night ${state.day}` : state.phase === 'day' ? `☀️ Day ${state.day}` : state.phase === 'vote' ? `🗳️ Vote · Day ${state.day}` : state.phase === 'end' ? '🏁 Game over' : 'Setup'}
-            </div>
-            <div className="mt-2 text-sm text-muted">{state.alive.size} alive</div>
-          </div>
+        <aside className="hidden overflow-y-auto border-l border-line/60 p-4 lg:block">
+          <GamePanel state={state} seats={seats} seatMap={seatMap} spectator={spectator} />
         </aside>
       </div>
 
