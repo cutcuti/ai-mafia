@@ -81,7 +81,7 @@ supabase/    migrations (tables, RLS, server-only write functions) + generated s
 - **Long games.** Past a token budget, agents write ≤150-word private notes at each day end and later prompts carry notes + key facts + today instead of the whole log.
 - **Rules.** 6 players by default: 2 Mafia · 1 Detective · 1 Doctor · 2 Villagers. The doctor can't save the same player twice in a row; the detective never re-checks someone; no winner after 8 days is a draw.
 
-Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](docs/DECISIONS.md).
+Methodology: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md). Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
 ## Roadmap
 
@@ -91,6 +91,6 @@ Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](
 - [x] M2: benchmark runner (h2h / ffa / self), parallel games + hard budget stop, metrics, OpenSkill ratings per role, Wilson CIs, markdown reports, resumable runs
 - [x] M3: Supabase persistence: migrations with RLS (events never client-readable), transactional uploads, ratings in the DB, demo seed
 - [x] M4: Next.js replay viewer: chat stream, playback + scrubber, spectator mode (thoughts, roles, night channel, lie markers), vote tracker + graph, role reveals, end screen, mobile layout, Playwright smoke tests
-- [ ] M5: leaderboard + model profiles: *which model lies best?*
+- [x] M5: leaderboard (Best Liars / Best Detectives / Overall) with Wilson CIs and provisional badges, model profiles, head-to-head pages, methodology
 - [ ] M6–M7: live AI games in the browser, then a human seat: you vs. five AIs
 - [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)
