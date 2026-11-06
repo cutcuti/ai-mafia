@@ -3,6 +3,7 @@ import Link from 'next/link';
 const NAV = [
   { href: '/', label: 'Games' },
   { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/play', label: 'Play live' },
   { href: '/about', label: 'About' },
 ];
 

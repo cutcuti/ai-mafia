@@ -9,7 +9,7 @@ const config: NextConfig = {
   // e2e builds use their own dir so they never collide with a running `next dev`
   distDir: process.env.NEXT_DIST_DIR ?? '.next',
   // workspace packages ship TypeScript source
-  transpilePackages: ['@ai-mafia/engine'],
+  transpilePackages: ['@ai-mafia/engine', '@ai-mafia/agents'],
   poweredByHeader: false,
   async headers() {
     return [
