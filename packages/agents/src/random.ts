@@ -1,5 +1,6 @@
 import { createRng } from '@ai-mafia/engine';
-import type { AgentContext, InputRequest, InputResponse, Responder, Rng } from '@ai-mafia/engine';
+import type { AgentContext, InputRequest, InputResponse, Rng } from '@ai-mafia/engine';
+import type { Controller } from './controller.js';
 
 const LINES = [
   'idk, something feels off about {x}',
@@ -10,7 +11,7 @@ const LINES = [
 ];
 
 /** Zero-cost controller for tests and dev runs. */
-export class RandomController implements Responder {
+export class RandomController implements Controller {
   private readonly rng: Rng;
   constructor(seed: number) {
     this.rng = createRng(seed);

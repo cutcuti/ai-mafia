@@ -15,3 +15,5 @@ One line each: date — decision — reason.
 - 2026-11-06 — Speech is trimmed then hard-cut to `maxSpeechChars` (no ellipsis), flagged `payload.truncated`.
 - 2026-11-06 — `replay()` re-executes the engine, re-feeding each step's response recovered from the log (raw output from `fallback` events; truncated speech padded by one char) and verifies every event matches — rngState and queue can't be derived any other way.
 - 2026-11-06 — `makeConfig` with `roles` but no `preset` yields preset 'custom'; a named preset must match its role table exactly — presets stay meaningful for leaderboard filtering.
+- 2026-11-06 — Notes (§7.8) are a `notes` event with `seat` visibility (author only), requested by the engine at day end — BRD said "spectator", which contradicts I2 since notes feed later prompts; approved by Protik.
+- 2026-11-06 — Engine public types gain optional `GameConfig.personaMode` and a `notes` request kind / event type — approved by Protik; additive, old configs/logs stay valid.
