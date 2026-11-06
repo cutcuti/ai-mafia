@@ -43,7 +43,7 @@ export function makeConfig(o: Partial<GameConfig> & { seed: number }): GameConfi
     controllers,
     seed: o.seed,
     rounds: o.rounds ?? 2,
-    maxDays: o.maxDays ?? 10,
+    maxDays: o.maxDays ?? 8,
     maxSpeechChars: o.maxSpeechChars ?? 280,
     createdAt: o.createdAt ?? '1970-01-01T00:00:00.000Z',
   };

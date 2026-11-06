@@ -129,7 +129,7 @@ function startPhase(d: GameState, phase: 'night' | 'day' | 'vote'): Step[] {
     d.day += 1;
     if (d.day > d.config.maxDays) {
       d.day -= 1;
-      finish(d, 'town'); // safety valve (v0 behaviour)
+      finish(d, 'draw'); // safety valve: no winner after maxDays
       return [];
     }
     d.phase = 'night';
@@ -254,8 +254,13 @@ function optionsFor(d: GameState, s: Seat, action: ChooseAction): string[] {
     case 'kill':
       return alive(d).filter((o) => o.role !== 'mafia').map((o) => o.id);
     case 'save':
-      return alive(d).map((o) => o.id);
-    case 'investigate':
+      // self allowed; never the same player two nights running
+      return alive(d).filter((o) => o.id !== d.memory.lastSave).map((o) => o.id);
+    case 'investigate': {
+      // never re-investigate; if everyone alive has been checked, anyone else is fine
+      const fresh = others.filter((o) => !d.memory.investigated.includes(o.id));
+      return (fresh.length ? fresh : others).map((o) => o.id);
+    }
     case 'vote':
       return others.map((o) => o.id);
   }
