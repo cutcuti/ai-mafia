@@ -23,7 +23,9 @@ export const TIRED = 'The AIs are tired for today — the daily budget is spent.
  */
 export async function createGameResponse(deps: CreateDeps, req: Request, user: SessionUser | null, ip: string): Promise<Response> {
   if (!user) return json({ error: 'Sign in with GitHub to start a game.' }, 401);
-  if (!(await deps.store.takeToken(`create:user:${user.id}`, 5, 5 / 3600)) || !(await deps.store.takeToken(`create:ip:${ip}`, 10, 10 / 3600))) {
+  const perUser = deps.limits.createPerUserPerHour ?? 5;
+  const perIp = deps.limits.createPerIpPerHour ?? 10;
+  if (!(await deps.store.takeToken(`create:user:${user.id}`, perUser, perUser / 3600)) || !(await deps.store.takeToken(`create:ip:${ip}`, perIp, perIp / 3600))) {
     return json({ error: 'Slow down — too many games started. Try again later.' }, 429);
   }
 

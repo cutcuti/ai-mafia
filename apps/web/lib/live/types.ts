@@ -49,6 +49,9 @@ export interface Limits {
   dailyBudgetUsd: number;
   maxGameCostUsd: number;
   maxGamesPerUserPerDay: number;
+  /** Token-bucket sizes for POST /api/games (refilled over an hour). */
+  createPerUserPerHour?: number;
+  createPerIpPerHour?: number;
 }
 
 export function limitsFromEnv(env: Record<string, string | undefined> = process.env): Limits {
@@ -60,5 +63,7 @@ export function limitsFromEnv(env: Record<string, string | undefined> = process.
     dailyBudgetUsd: n(env.DAILY_BUDGET_USD, 2),
     maxGameCostUsd: n(env.MAX_GAME_COST_USD, 0.25),
     maxGamesPerUserPerDay: n(env.MAX_LIVE_GAMES_PER_USER_PER_DAY, 3),
+    createPerUserPerHour: n(env.CREATE_PER_USER_PER_HOUR, 5),
+    createPerIpPerHour: n(env.CREATE_PER_IP_PER_HOUR, 10),
   };
 }

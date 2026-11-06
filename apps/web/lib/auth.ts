@@ -2,9 +2,13 @@ import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import type { User } from '@supabase/supabase-js';
 import { cookies, headers } from 'next/headers';
+import { devUserMode, fixtureMode } from './devmode';
 import type { SessionUser } from './live/types';
 
-export const authConfigured = () => !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+export const authConfigured = () => devUserMode() || !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && !fixtureMode());
+
+/** Fake signed-in user for offline dev/e2e only (see lib/devmode.ts). */
+const DEV_USER: SessionUser = { id: '00000000-0000-4000-8000-00000000d3v0', githubId: 'dev', login: 'local-dev', avatarUrl: null };
 
 /** Supabase client bound to the request's auth cookies (anon key — it can only act as the signed-in user). */
 export async function supabaseForRequest() {
@@ -37,6 +41,7 @@ export function toSessionUser(u: User): SessionUser {
 
 /** The signed-in user, verified with Supabase Auth (getUser re-validates the JWT server-side). */
 export async function getSessionUser(): Promise<SessionUser | null> {
+  if (devUserMode()) return DEV_USER;
   if (!authConfigured()) return null;
   const sb = await supabaseForRequest();
   const { data, error } = await sb.auth.getUser();

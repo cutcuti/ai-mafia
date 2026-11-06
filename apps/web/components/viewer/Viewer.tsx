@@ -36,7 +36,24 @@ function writePref(on: boolean) {
   }
 }
 
-export function Viewer({ meta, events, initialSeq }: ViewerProps) {
+type WaitingOn = { kind: 'speak' | 'vote'; seatId: string } | { kind: 'night' } | null;
+
+/** Append events with seq beyond what we have (responses can overlap). */
+const appendNew = (have: GameEvent[], incoming: GameEvent[]) => {
+  const last = have.at(-1)?.seq ?? -1;
+  const add = incoming.filter((e) => e.seq > last).sort((a, b) => a.seq - b.seq);
+  return add.length ? [...have, ...add] : have;
+};
+
+export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps) {
+  // ── live games (BRD §9.4): this browser drives /advance while it's watching and caught up ──
+  const startsLive = meta.status === 'running' || meta.status === 'awaiting_input';
+  const [liveStatus, setLiveStatus] = useState<string>(meta.status);
+  const live = liveStatus === 'running' || liveStatus === 'awaiting_input';
+  const [events, setEvents] = useState<GameEvent[]>(initialEvents);
+  const [waiting, setWaiting] = useState<WaitingOn>(null);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
   // ── spectator mode: thoughts + hidden events, fetched from the server only when allowed (I3, I8) ──
   const [spectator, setSpectator] = useState(false);
   const [specEvents, setSpecEvents] = useState<GameEvent[] | null>(null);
@@ -47,7 +64,7 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   const [revealed, setRevealed] = useState<ReadonlySet<number>>(new Set());
 
   const loadSpectator = useCallback(async () => {
-    if (specEvents) return true;
+    if (specEvents && !live) return true; // finished games never change; live ones are re-fetched
     setSpecLoading(true);
     setSpecError(null);
     try {
@@ -64,7 +81,7 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
     } finally {
       setSpecLoading(false);
     }
-  }, [meta.id, specEvents]);
+  }, [meta.id, specEvents, live]);
 
   const activeMeta = spectator && specMeta ? specMeta : meta;
   const activeEvents = spectator && specEvents ? specEvents : events;
@@ -75,7 +92,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   const marks = useMemo(() => timelineMarkers(beats), [beats]);
   const trueRoles = useMemo(() => new Map(seats.filter((s) => s.role).map((s) => [s.seatId, s.role!])), [seats]);
 
-  const [count, setCount] = useState(() => (initialSeq !== undefined ? indexForSeq(beats, initialSeq) : 1));
+  // live games open caught up (everything so far), replays from the start
+  const [count, setCount] = useState(() => (initialSeq !== undefined ? indexForSeq(beats, initialSeq) : startsLive ? beats.length : 1));
   const [playing, setPlaying] = useState(initialSeq === undefined);
   const [speed, setSpeed] = useState<Speed>(1);
   const total = beats.length;
@@ -85,7 +103,7 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   useEffect(() => {
     if (!playing) return;
     if (count >= total) {
-      setPlaying(false);
+      if (!live) setPlaying(false); // live: keep "playing" so new beats glide in as they arrive
       return;
     }
     if (speed === Infinity) {
@@ -159,6 +177,87 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── live driver: one /advance at a time, only when caught up, visible and playing ──
+  const view = spectator ? 'spectator' : 'public';
+  const activeLast = activeEvents.at(-1)?.seq ?? -1;
+  const lastRef = useRef(activeLast);
+  lastRef.current = activeLast;
+  const caughtUp = count >= total;
+  const [visible, setVisible] = useState(true);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const on = () => setVisible(document.visibilityState === 'visible');
+    on();
+    document.addEventListener('visibilitychange', on);
+    return () => document.removeEventListener('visibilitychange', on);
+  }, []);
+
+  const ingest = useCallback(
+    (v: string, incoming: GameEvent[]) => {
+      if (!incoming.length) return;
+      if (v === 'spectator') setSpecEvents((s) => appendNew(s ?? [], incoming));
+      else setEvents((s) => appendNew(s, incoming));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!live || liveStatus !== 'running' || !caughtUp || !visible || !playing) return;
+    const ctrl = new AbortController();
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    (async () => {
+      try {
+        const r = await fetch(`/api/games/${meta.id}/advance?view=${view}&after=${lastRef.current}`, { method: 'POST', signal: ctrl.signal });
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.error ?? `advance failed (${r.status})`);
+        setLiveError(null);
+        ingest(view, body.events as GameEvent[]);
+        setWaiting(body.waitingOn ?? null);
+        if (body.status !== 'busy') setLiveStatus(body.status);
+        // someone else is mid-turn, or nothing new: look again shortly (a Realtime ping may beat us to it)
+        if (body.status === 'busy' || !(body.events as GameEvent[]).length) retry = setTimeout(() => setTick((t) => t + 1), 1500);
+      } catch (e) {
+        if (ctrl.signal.aborted) return;
+        setLiveError((e as Error).message);
+        retry = setTimeout(() => setTick((t) => t + 1), 4000);
+      }
+    })();
+    return () => {
+      ctrl.abort();
+      clearTimeout(retry);
+    };
+  }, [live, liveStatus, caughtUp, visible, playing, view, meta.id, ingest, activeLast, tick]);
+
+  const spectatorRef = useRef(spectator);
+  spectatorRef.current = spectator;
+
+  // Realtime: another viewer advanced the game → fetch the new filtered events (pings carry only a seq, I3)
+  useEffect(() => {
+    if (!startsLive || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return;
+    let cancelled = false;
+    let cleanup = () => {};
+    void import('@supabase/supabase-js').then(({ createClient }) => {
+      if (cancelled) return;
+      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+      const ch = sb
+        .channel(`game:${meta.id}`)
+        .on('broadcast', { event: 'seq' }, ({ payload }) => {
+          const seq = Number((payload as { seq?: number })?.seq);
+          if (!(seq > lastRef.current)) return;
+          const v = spectatorRef.current ? 'spectator' : 'public';
+          void fetch(`/api/games/${meta.id}/events?view=${v}&after=${lastRef.current}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((b) => b && ingest(v, b.events as GameEvent[]));
+        })
+        .subscribe();
+      cleanup = () => void sb.removeChannel(ch);
+    });
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
+  }, [startsLive, meta.id, ingest]);
+
   const share = useCallback(
     (seq: number) => {
       const url = `${window.location.origin}/g/${meta.id}?t=${seq}`;
@@ -199,6 +298,12 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
         <a href="/" className="font-display text-lg font-extrabold tracking-tight">
           AI <span className="text-neon-pink">Mafia</span>
         </a>
+        {liveStatus === 'running' && (
+          <span className="flex items-center gap-1.5 rounded-full bg-mafia/15 px-2.5 py-1 text-xs font-extrabold tracking-wider text-mafia" aria-label="Live game">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-mafia" aria-hidden />
+            LIVE
+          </span>
+        )}
         <span className="hidden truncate text-sm text-muted sm:inline">
           {meta.models.map(modelName).join(' vs ')} · {meta.preset}
         </span>
@@ -239,6 +344,16 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           {specError}
         </p>
       )}
+      {liveStatus === 'aborted' && (
+        <p role="status" className="border-b border-line/60 bg-neon-amber/10 px-4 py-2 text-center text-sm text-neon-amber">
+          This game was stopped before it finished (it hit its cost limit or was ended by an admin).
+        </p>
+      )}
+      {live && liveError && (
+        <p role="status" className="border-b border-line/60 bg-mafia/10 px-4 py-2 text-center text-sm text-mafia">
+          Connection hiccup: {liveError}. Retrying…
+        </p>
+      )}
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] lg:grid-cols-[260px_minmax(0,1fr)_280px] lg:grid-rows-1">
         <aside className="min-w-0 border-b border-line/60 px-3 py-2 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-3">
@@ -266,6 +381,22 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
                 onShare={() => share(b.event.seq)}
               />
             ))}
+            {live && caughtUp && (
+              <p className="flex items-center gap-2 py-3 pl-12 text-sm text-muted" aria-live="polite">
+                <span className="inline-flex gap-1" aria-hidden>
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted [animation-delay:-0.3s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted [animation-delay:-0.15s]" />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted" />
+                </span>
+                {!playing
+                  ? 'Paused — press play to keep the game going'
+                  : waiting && 'seatId' in waiting
+                    ? `${seatMap.get(waiting.seatId)?.name ?? 'Someone'} is ${waiting.kind === 'vote' ? 'deciding their vote' : 'typing'}…`
+                    : waiting?.kind === 'night'
+                      ? '🌙 Night falls… someone is making moves'
+                      : 'Thinking…'}
+              </p>
+            )}
             <div ref={end} />
           </div>
         </main>

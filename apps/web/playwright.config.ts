@@ -21,6 +21,16 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
-    env: { MAFIA_FIXTURE_DIR: 'e2e/fixtures', NEXT_DIST_DIR: '.next-e2e', NEXT_TELEMETRY_DISABLED: '1' },
+    // offline: fixture games, in-memory live games, a fake local user, mocked models (no keys, no cost)
+    env: {
+      MAFIA_FIXTURE_DIR: 'e2e/fixtures',
+      MAFIA_DEV_USER: '1',
+      MAFIA_DRY_RUN: '1',
+      MAX_LIVE_GAMES_PER_USER_PER_DAY: '50',
+      CREATE_PER_USER_PER_HOUR: '100',
+      CREATE_PER_IP_PER_HOUR: '100',
+      NEXT_DIST_DIR: '.next-e2e',
+      NEXT_TELEMETRY_DISABLED: '1',
+    },
   },
 });

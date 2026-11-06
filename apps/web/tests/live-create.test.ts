@@ -89,11 +89,13 @@ test('web models: only cheap, enabled models whose key is configured', () => {
 });
 
 test('limits come from env with BRD defaults; junk values fall back', () => {
-  assert.deepEqual(limitsFromEnv({}), { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3 });
+  assert.deepEqual(limitsFromEnv({}), { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3, createPerUserPerHour: 5, createPerIpPerHour: 10 });
   assert.deepEqual(limitsFromEnv({ DAILY_BUDGET_USD: '0.5', MAX_GAME_COST_USD: 'lots', MAX_LIVE_GAMES_PER_USER_PER_DAY: '-1' }), {
     dailyBudgetUsd: 0.5,
     maxGameCostUsd: 0.25,
     maxGamesPerUserPerDay: 3,
+    createPerUserPerHour: 5,
+    createPerIpPerHour: 10,
   });
 });
 
