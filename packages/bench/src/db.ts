@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent } from '@ai-mafia/engine';
 import { MODELS, type ModelSpec } from '@ai-mafia/agents';
-import type { RatingRow } from './ratings.js';
+import { computeRatings, type RatingRow } from './ratings.js';
 import { RANDOM, type GameRecord } from './runner.js';
 
 /** The rows upload_game(p) expects (see supabase/migrations). */
@@ -221,6 +221,14 @@ export function ratedGameFromRow(g: Record<string, unknown>) {
     promptVersion: String(g.prompt_version),
     seats,
   };
+}
+
+/** BRD §8.4 rebuild: every finished game in the DB → ratings computed from scratch → ratings table replaced atomically. */
+export async function rebuildRatingsInDb(db: BenchDb): Promise<{ games: number; rows: RatingRow[] }> {
+  const games = await db.fetchRatedGames();
+  const rows = computeRatings(games);
+  await db.replaceRatings(rows);
+  return { games: games.length, rows };
 }
 
 export const ratingToRow = (r: RatingRow) => ({
