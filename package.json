@@ -1,0 +1,20 @@
+{
+  "name": "ai-mafia",
+  "version": "1.0.0",
+  "description": "AI agents play Mafia. Watch them lie.",
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "game": "tsx --env-file-if-exists=.env src/cli.ts",
+    "typecheck": "tsc"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "type": "module"
+}
