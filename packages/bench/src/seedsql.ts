@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { MODELS, type ModelSpec } from '@ai-mafia/agents';
-import { RANDOM } from './runner.js';
+import { RANDOM } from './runner.ts';
 
 const q = (s: string) => `'${s.replace(/'/g, "''")}'`;
 

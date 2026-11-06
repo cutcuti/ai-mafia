@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { Limiter, ReliableProvider, TimeoutError, isRetryable, limiterFor } from '../src/reliability.js';
-import type { CompletionRequest, CompletionResult, Provider } from '../src/providers/types.js';
+import { Limiter, ReliableProvider, TimeoutError, isRetryable, limiterFor } from '../src/reliability.ts';
+import type { CompletionRequest, CompletionResult, Provider } from '../src/providers/types.ts';
 
 const req: CompletionRequest = { model: 'm', system: 's', user: 'u', tool: { name: 't', description: '', schema: {} }, maxOutputTokens: 10 };
 const ok: CompletionResult = { toolInput: { a: 1 }, usage: { inputTokens: 1, outputTokens: 1 }, latencyMs: 1, raw: null };

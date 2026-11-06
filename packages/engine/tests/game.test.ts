@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { checkWinner, tally, createGame, nextRequest, contextFor } from '../src/state.js';
-import { makeConfig } from '../src/setup.js';
-import { canSee } from '../src/visibility.js';
-import { play } from './helpers.js';
+import { checkWinner, tally, createGame, nextRequest, contextFor } from '../src/state.ts';
+import { makeConfig } from '../src/setup.ts';
+import { canSee } from '../src/visibility.ts';
+import { play } from './helpers.ts';
 
 test('200 random games all finish with a valid winner', async () => {
   for (let seed = 1; seed <= 200; seed++) {

@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { MODELS } from '@ai-mafia/agents';
-import { seedDemo } from '../src/seed.js';
-import { SEED_PATH, seedSql } from '../src/seedsql.js';
-import { as, pgliteDb, supabaseLikeDb } from './pg.js';
+import { seedDemo } from '../src/seed.ts';
+import { SEED_PATH, seedSql } from '../src/seedsql.ts';
+import { as, pgliteDb, supabaseLikeDb } from './pg.ts';
 
 test('supabase/seed.sql is up to date with the model registry (run `pnpm db:gen-seed` if this fails)', () => {
   assert.equal(readFileSync(SEED_PATH, 'utf8'), seedSql());

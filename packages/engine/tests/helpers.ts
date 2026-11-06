@@ -1,8 +1,8 @@
-import { createRng } from '../src/rng.js';
-import { makeConfig } from '../src/setup.js';
-import { createGame } from '../src/state.js';
-import { drive, type Responder } from '../src/drive.js';
-import type { AgentContext, GameConfig, InputRequest, InputResponse } from '../src/types.js';
+import { createRng } from '../src/rng.ts';
+import { makeConfig } from '../src/setup.ts';
+import { createGame } from '../src/state.ts';
+import { drive, type Responder } from '../src/drive.ts';
+import type { AgentContext, GameConfig, InputRequest, InputResponse } from '../src/types.ts';
 
 const LINES = ['idk, something feels off about {x}', '{x} has been way too quiet', "I'm town, I promise. Look at {x} instead.", '{x} is giving mafia energy fr'];
 

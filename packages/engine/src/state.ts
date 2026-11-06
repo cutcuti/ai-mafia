@@ -1,6 +1,6 @@
-import { assertValidConfig } from './presets.js';
-import { createRng, type Rng } from './rng.js';
-import { createSeats } from './setup.js';
+import { assertValidConfig } from './presets.ts';
+import { createRng, type Rng } from './rng.ts';
+import { createSeats } from './setup.ts';
 import type {
   AgentContext,
   ChooseAction,
@@ -16,8 +16,8 @@ import type {
   Step,
   Team,
   Visibility,
-} from './types.js';
-import { observationsFor } from './visibility.js';
+} from './types.ts';
+import { observationsFor } from './visibility.ts';
 
 const PUBLIC: Visibility = { kind: 'public' };
 const MAFIA: Visibility = { kind: 'team', team: 'mafia' };

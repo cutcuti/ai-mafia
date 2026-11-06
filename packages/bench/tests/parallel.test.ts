@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import type { Responder } from '@ai-mafia/engine';
 import { RandomController } from '@ai-mafia/agents';
 import type { AgentCall } from '@ai-mafia/agents';
-import { runBench, type BenchOptions } from '../src/runner.js';
+import { runBench, type BenchOptions } from '../src/runner.ts';
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'bench-'));
 
@@ -70,7 +70,7 @@ test('budget guard holds from the very first wave (registry-price prior), even w
 });
 
 test('estimateGameCostUsd: random seats are free, priced seats scale with registry prices', async () => {
-  const { estimateGameCostUsd } = await import('../src/runner.js');
+  const { estimateGameCostUsd } = await import('../src/runner.ts');
   assert.equal(estimateGameCostUsd({ gameId: 'g', seed: 1, format: 'self', preset: 'classic6', seatModels: Array(6).fill('random') }), 0);
   const haiku = estimateGameCostUsd({ gameId: 'g', seed: 1, format: 'self', preset: 'classic6', seatModels: Array(6).fill('claude-haiku') });
   const sonnet = estimateGameCostUsd({ gameId: 'g', seed: 1, format: 'self', preset: 'classic6', seatModels: Array(6).fill('claude-sonnet') });

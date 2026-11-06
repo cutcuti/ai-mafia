@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createGame, drive, makeConfig } from '@ai-mafia/engine';
 import type { AgentContext, Responder } from '@ai-mafia/engine';
-import { RandomController } from '../src/random.js';
-import { renderTranscript } from '../src/render.js';
+import { RandomController } from '../src/random.ts';
+import { renderTranscript } from '../src/render.ts';
 
 const ctx: AgentContext = {
   self: { seatId: 's1', name: 'Zara', role: 'villager', persona: { id: 'x', label: 'x', description: 'x', avatarSeed: 'x' } },

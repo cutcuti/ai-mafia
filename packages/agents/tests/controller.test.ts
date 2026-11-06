@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createGame, contextFor, drive, makeConfig, nextRequest } from '@ai-mafia/engine';
 import type { Responder } from '@ai-mafia/engine';
-import { ModelController } from '../src/controller.js';
-import { MockProvider } from '../src/providers/mock.js';
-import { RandomController } from '../src/random.js';
+import { ModelController } from '../src/controller.ts';
+import { MockProvider } from '../src/providers/mock.ts';
+import { RandomController } from '../src/random.ts';
 
 test('ModelController sends names in the tool enum and maps the answer back to a seat id', async () => {
   const s = createGame(makeConfig({ seed: 4 }));

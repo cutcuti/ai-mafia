@@ -3,8 +3,8 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { computeRatings, loadRecords, type RatingRow } from '../src/ratings.js';
-import { runBench, type GameRecord } from '../src/runner.js';
+import { computeRatings, loadRecords, type RatingRow } from '../src/ratings.ts';
+import { runBench, type GameRecord } from '../src/runner.ts';
 
 type G = Pick<GameRecord, 'gameId' | 'seats' | 'outcome' | 'promptVersion' | 'preset'>;
 

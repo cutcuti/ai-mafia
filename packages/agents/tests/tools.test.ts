@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { contextFor, createGame, drive, makeConfig, nextRequest } from '@ai-mafia/engine';
 import type { InputRequest, Responder } from '@ai-mafia/engine';
-import { ModelController } from '../src/controller.js';
-import { MockProvider } from '../src/providers/mock.js';
-import { toolFor } from '../src/tools.js';
+import { ModelController } from '../src/controller.ts';
+import { MockProvider } from '../src/providers/mock.ts';
+import { toolFor } from '../src/tools.ts';
 
 const s = createGame(makeConfig({ seed: 4 }));
 const ctx = contextFor(s, 's1');

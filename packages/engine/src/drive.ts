@@ -1,5 +1,5 @@
-import { applyResponse, contextFor, nextRequest } from './state.js';
-import type { AgentContext, GameState, InputRequest, InputResponse } from './types.js';
+import { applyResponse, contextFor, nextRequest } from './state.ts';
+import type { AgentContext, GameState, InputRequest, InputResponse } from './types.ts';
 
 /** Anything that can answer an InputRequest. `@ai-mafia/agents` Controllers satisfy this. */
 export interface Responder {

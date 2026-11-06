@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { AgentContext, InputRequest, InputResponse, Role } from '@ai-mafia/engine';
-import type { ToolSpec } from './providers/types.js';
+import type { ToolSpec } from './providers/types.ts';
 
 const ROLES = ['mafia', 'detective', 'doctor', 'villager'] as const satisfies readonly Role[];
 

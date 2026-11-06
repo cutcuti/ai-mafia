@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { CompletionRequest, CompletionResult, Provider } from './types.js';
+import type { CompletionRequest, CompletionResult, Provider } from './types.ts';
 
 /** Minimal slice of the SDK client we use — lets tests inject a fixture-backed fake. */
 export type AnthropicLike = Pick<Anthropic, 'messages'>;

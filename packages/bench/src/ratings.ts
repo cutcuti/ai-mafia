@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { ordinal, rate, rating, type Rating } from 'openskill';
-import type { GameRecord } from './runner.js';
+import type { GameRecord } from './runner.ts';
 
 export type Scope = 'overall' | 'as_mafia' | 'as_town';
 export const SCOPES: readonly Scope[] = ['overall', 'as_mafia', 'as_town'];

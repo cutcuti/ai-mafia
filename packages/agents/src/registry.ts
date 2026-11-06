@@ -1,5 +1,5 @@
-import { MODELS, type ModelSpec } from './models.config.js';
-import type { Usage } from './providers/types.js';
+import { MODELS, type ModelSpec } from './models.config.ts';
+import type { Usage } from './providers/types.ts';
 
 export function getModel(id: string, models: readonly ModelSpec[] = MODELS): ModelSpec {
   const m = models.find((x) => x.id === id);

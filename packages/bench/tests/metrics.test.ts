@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { EventType, GameEvent, Phase, Visibility } from '@ai-mafia/engine';
 import type { AgentCall } from '@ai-mafia/agents';
-import { computeMetrics, percentile, summarize, type MetricGame } from '../src/metrics.js';
-import { runBench } from '../src/runner.js';
+import { computeMetrics, percentile, summarize, type MetricGame } from '../src/metrics.ts';
+import { runBench } from '../src/runner.ts';
 
 /** Tiny event builder for hand-written logs. */
 function log() {

@@ -1,5 +1,5 @@
-import { applyResponse, createGame, nextRequest } from './state.js';
-import type { GameConfig, GameEvent, GameState, InputRequest, InputResponse, Role } from './types.js';
+import { applyResponse, createGame, nextRequest } from './state.ts';
+import type { GameConfig, GameEvent, GameState, InputRequest, InputResponse, Role } from './types.ts';
 
 /** JSON with object keys sorted, so logs read back from storage (e.g. Postgres jsonb, which reorders keys) still compare equal. */
 function canonical(v: unknown): string {

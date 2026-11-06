@@ -3,7 +3,7 @@ import { mkdtempSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { planGames, runBench, type BenchOptions } from '../src/runner.js';
+import { planGames, runBench, type BenchOptions } from '../src/runner.ts';
 
 const now = () => new Date('2026-11-06T00:00:00.000Z');
 const opts = (outDir: string, extra: Partial<BenchOptions> = {}): BenchOptions => ({

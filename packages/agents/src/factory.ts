@@ -1,10 +1,10 @@
-import { ModelController } from './controller.js';
-import { MODELS, type ModelSpec } from './models.config.js';
-import { AnthropicProvider } from './providers/anthropic.js';
-import { OPENROUTER_BASE_URL, OpenAICompatProvider } from './providers/openai.js';
-import type { Provider } from './providers/types.js';
-import { getModel, type AgentCall } from './registry.js';
-import { ReliableProvider, limiterFor, type ReliabilityOptions } from './reliability.js';
+import { ModelController } from './controller.ts';
+import { MODELS, type ModelSpec } from './models.config.ts';
+import { AnthropicProvider } from './providers/anthropic.ts';
+import { OPENROUTER_BASE_URL, OpenAICompatProvider } from './providers/openai.ts';
+import type { Provider } from './providers/types.ts';
+import { getModel, type AgentCall } from './registry.ts';
+import { ReliableProvider, limiterFor, type ReliabilityOptions } from './reliability.ts';
 
 export interface FactoryOptions {
   models?: readonly ModelSpec[];

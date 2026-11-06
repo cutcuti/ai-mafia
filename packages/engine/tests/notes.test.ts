@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { replay } from '../src/replay.js';
-import { contextFor } from '../src/state.js';
-import { canSee } from '../src/visibility.js';
-import { play } from './helpers.js';
+import { replay } from '../src/replay.ts';
+import { contextFor } from '../src/state.ts';
+import { canSee } from '../src/visibility.ts';
+import { play } from './helpers.ts';
 
 test('notes mode off under the default budget for a normal 6-player game', async () => {
   for (let seed = 1; seed <= 30; seed++) {

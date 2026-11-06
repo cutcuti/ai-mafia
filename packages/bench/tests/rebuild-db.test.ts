@@ -3,10 +3,10 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { rebuildRatingsInDb, uploadRecords } from '../src/db.js';
-import { computeRatings } from '../src/ratings.js';
-import { runBench } from '../src/runner.js';
-import { as, pgliteDb, supabaseLikeDb } from './pg.js';
+import { rebuildRatingsInDb, uploadRecords } from '../src/db.ts';
+import { computeRatings } from '../src/ratings.ts';
+import { runBench } from '../src/runner.ts';
+import { as, pgliteDb, supabaseLikeDb } from './pg.ts';
 
 const out = () => mkdtempSync(join(tmpdir(), 'bench-'));
 

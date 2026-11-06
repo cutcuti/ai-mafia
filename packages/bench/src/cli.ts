@@ -1,9 +1,9 @@
 import { parseArgs } from 'node:util';
 import { PRESET_NAMES, isPreset } from '@ai-mafia/engine';
 import { getModel } from '@ai-mafia/agents';
-import { supabaseFromEnv, uploadRecords, type BenchDb } from './db.js';
-import { buildReport, writeReport } from './report.js';
-import { RANDOM, defaultRunId, runBench, type BenchOptions, type Format } from './runner.js';
+import { supabaseFromEnv, uploadRecords, type BenchDb } from './db.ts';
+import { buildReport, writeReport } from './report.ts';
+import { RANDOM, defaultRunId, runBench, type BenchOptions, type Format } from './runner.ts';
 
 const HELP = `pnpm bench -- --format <h2h|ffa|self> [options]
   h2h:  --a <model> --b <model>     A plays all mafia seats vs B on town, then swapped, same seeds

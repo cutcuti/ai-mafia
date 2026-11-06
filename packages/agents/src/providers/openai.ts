@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { CompletionRequest, CompletionResult, Provider } from './types.js';
+import type { CompletionRequest, CompletionResult, Provider } from './types.ts';
 
 /** Minimal slice of the SDK client we use — lets tests inject a fixture-backed fake. */
 export type OpenAILike = { chat: { completions: Pick<OpenAI['chat']['completions'], 'create'> } };

@@ -5,9 +5,9 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { createClient } from '@supabase/supabase-js';
 import { replay, type GameConfig } from '@ai-mafia/engine';
-import { rowToEvent, supabaseDb, toUploadPayload, uploadRecords, type BenchDb } from '../src/db.js';
-import { runBench } from '../src/runner.js';
-import { as, pgliteDb, supabaseLikeDb } from './pg.js';
+import { rowToEvent, supabaseDb, toUploadPayload, uploadRecords, type BenchDb } from '../src/db.ts';
+import { runBench } from '../src/runner.ts';
+import { as, pgliteDb, supabaseLikeDb } from './pg.ts';
 
 const now = () => new Date('2026-11-06T09:00:00.000Z');
 const bench = (games = 4) =>

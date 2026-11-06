@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fc from 'fast-check';
-import { applyResponse, createGame, nextRequest } from '../src/state.js';
-import { makeConfig } from '../src/setup.js';
-import { canSee } from '../src/visibility.js';
-import type { RoleCounts } from '../src/types.js';
-import { play } from './helpers.js';
+import { applyResponse, createGame, nextRequest } from '../src/state.ts';
+import { makeConfig } from '../src/setup.ts';
+import { canSee } from '../src/visibility.ts';
+import type { RoleCounts } from '../src/types.ts';
+import { play } from './helpers.ts';
 
 test('applyResponse is idempotent: stale or unknown request ids are no-ops', () => {
   let s = createGame(makeConfig({ seed: 12 }));

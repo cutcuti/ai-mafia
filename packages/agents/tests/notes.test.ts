@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { contextFor, createGame, drive, makeConfig } from '@ai-mafia/engine';
 import type { InputRequest, Responder } from '@ai-mafia/engine';
-import { ModelController } from '../src/controller.js';
-import { taskFor, userPrompt } from '../src/prompts.js';
-import { MockProvider } from '../src/providers/mock.js';
-import { RandomController } from '../src/random.js';
-import { renderTranscript } from '../src/render.js';
-import { toolFor } from '../src/tools.js';
+import { ModelController } from '../src/controller.ts';
+import { taskFor, userPrompt } from '../src/prompts.ts';
+import { MockProvider } from '../src/providers/mock.ts';
+import { RandomController } from '../src/random.ts';
+import { renderTranscript } from '../src/render.ts';
+import { toolFor } from '../src/tools.ts';
 
 test('random controllers + tiny budget: notes get written and later prompts switch to notes mode', async () => {
   // pick a seed whose game reaches day 3, so notes exist and are used

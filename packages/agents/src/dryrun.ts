@@ -1,7 +1,7 @@
 import { createRng } from '@ai-mafia/engine';
-import type { ModelSpec } from './models.config.js';
-import { MockProvider } from './providers/mock.js';
-import type { CompletionRequest, Provider } from './providers/types.js';
+import type { ModelSpec } from './models.config.ts';
+import { MockProvider } from './providers/mock.ts';
+import type { CompletionRequest, Provider } from './providers/types.ts';
 
 const LINES = ['ngl {x} is acting weird', 'I trust {x} less every round', 'hear me out: {x}', 'not voting {x} would be wild'];
 

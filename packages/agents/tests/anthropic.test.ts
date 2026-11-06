@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import type Anthropic from '@anthropic-ai/sdk';
 import { createGame, contextFor, makeConfig } from '@ai-mafia/engine';
-import { ModelController } from '../src/controller.js';
-import { AnthropicProvider, type AnthropicLike } from '../src/providers/anthropic.js';
+import { ModelController } from '../src/controller.ts';
+import { AnthropicProvider, type AnthropicLike } from '../src/providers/anthropic.ts';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/anthropic-tool-use.json', import.meta.url), 'utf8'));
 

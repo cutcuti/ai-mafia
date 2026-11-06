@@ -1,6 +1,6 @@
 import { createRng } from '@ai-mafia/engine';
 import type { AgentContext, InputRequest, InputResponse, Rng } from '@ai-mafia/engine';
-import type { Controller } from './controller.js';
+import type { Controller } from './controller.ts';
 
 const LINES = [
   'idk, something feels off about {x}',

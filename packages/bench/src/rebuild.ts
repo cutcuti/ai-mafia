@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
-import { rebuildRatingsInDb, supabaseFromEnv } from './db.js';
-import { computeRatings, loadRecords, type RatingRow } from './ratings.js';
+import { rebuildRatingsInDb, supabaseFromEnv } from './db.ts';
+import { computeRatings, loadRecords, type RatingRow } from './ratings.ts';
 
 /**
  * pnpm ratings:rebuild            — from local games/ → ratings.json

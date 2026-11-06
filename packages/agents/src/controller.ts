@@ -1,9 +1,9 @@
 import type { AgentContext, InputRequest, InputResponse, Responder } from '@ai-mafia/engine';
-import { PROMPT_VERSION, systemPrompt, userPrompt } from './prompts.js';
-import type { ModelSpec } from './models.config.js';
-import { costUsd, parseRequestId, type AgentCall } from './registry.js';
-import type { CompletionResult, Provider } from './providers/types.js';
-import { invalidResponse, toolFor } from './tools.js';
+import { PROMPT_VERSION, systemPrompt, userPrompt } from './prompts.ts';
+import type { ModelSpec } from './models.config.ts';
+import { costUsd, parseRequestId, type AgentCall } from './registry.ts';
+import type { CompletionResult, Provider } from './providers/types.ts';
+import { invalidResponse, toolFor } from './tools.ts';
 
 /** Anything that plays a seat (BRD §7.1). Structurally the engine's Responder. */
 export interface Controller extends Responder {

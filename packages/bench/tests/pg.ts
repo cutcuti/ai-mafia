@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
-import { ratedGameFromRow, ratingToRow, type BenchDb } from '../src/db.js';
+import { ratedGameFromRow, ratingToRow, type BenchDb } from '../src/db.ts';
 
 const MIGRATIONS = new URL('../../../supabase/migrations/', import.meta.url);
 

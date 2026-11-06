@@ -1,4 +1,4 @@
-import type { CompletionRequest, CompletionResult, Provider } from './providers/types.js';
+import type { CompletionRequest, CompletionResult, Provider } from './providers/types.ts';
 
 export class TimeoutError extends Error {
   constructor(ms: number) {

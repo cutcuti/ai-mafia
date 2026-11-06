@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
-import { createGame } from '../src/state.js';
-import { drive } from '../src/drive.js';
-import { replay } from '../src/replay.js';
-import { makeConfig } from '../src/setup.js';
-import type { GameState } from '../src/types.js';
-import { play, randomResponder } from './helpers.js';
+import { createGame } from '../src/state.ts';
+import { drive } from '../src/drive.ts';
+import { replay } from '../src/replay.ts';
+import { makeConfig } from '../src/setup.ts';
+import type { GameState } from '../src/types.ts';
+import { play, randomResponder } from './helpers.ts';
 
 test('I4: same config + seed + responses ⇒ identical event log', async () => {
   for (let seed = 1; seed <= 50; seed++) {

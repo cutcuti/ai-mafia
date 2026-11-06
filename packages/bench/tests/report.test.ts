@@ -3,9 +3,9 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { buildReport, writeReport } from '../src/report.js';
-import { runBench, type BenchOptions } from '../src/runner.js';
-import { wilson } from '../src/stats.js';
+import { buildReport, writeReport } from '../src/report.ts';
+import { runBench, type BenchOptions } from '../src/runner.ts';
+import { wilson } from '../src/stats.ts';
 
 const close = (a: number, b: number, eps = 1e-4) => assert.ok(Math.abs(a - b) < eps, `${a} ≠ ${b}`);
 

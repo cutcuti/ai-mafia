@@ -1,6 +1,6 @@
 import type { GameEvent, Outcome, Role } from '@ai-mafia/engine';
 import type { AgentCall } from '@ai-mafia/agents';
-import type { GameRecord, SeatRecord } from './runner.js';
+import type { GameRecord, SeatRecord } from './runner.ts';
 
 /** Everything metrics need from a game. Pure functions over event logs (BRD §8.3) — no IO, no model calls. */
 export type MetricGame = Pick<GameRecord, 'gameId' | 'seats' | 'events' | 'outcome' | 'agentCalls'>;

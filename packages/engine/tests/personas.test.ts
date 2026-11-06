@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { NEUTRAL_PERSONA, PERSONAS, makeConfig } from '../src/setup.js';
-import { createGame } from '../src/state.js';
+import { NEUTRAL_PERSONA, PERSONAS, makeConfig } from '../src/setup.ts';
+import { createGame } from '../src/state.ts';
 
 test('persona pool: ≥10, unique ids, every seat of a 10-seat table distinct', () => {
   assert.ok(PERSONAS.length >= 10);

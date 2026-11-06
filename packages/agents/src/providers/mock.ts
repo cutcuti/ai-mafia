@@ -1,4 +1,4 @@
-import type { CompletionRequest, CompletionResult, Provider } from './types.js';
+import type { CompletionRequest, CompletionResult, Provider } from './types.ts';
 
 export type MockAnswer = ((req: CompletionRequest, call: number) => unknown) | Record<string, unknown> | unknown[] | string | number | boolean | null;
 

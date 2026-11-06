@@ -1,5 +1,5 @@
 import type { AgentContext, InputRequest, RoleCounts } from '@ai-mafia/engine';
-import { renderTranscript } from './render.js';
+import { renderTranscript } from './render.ts';
 
 /** Bump whenever any prompt text changes; stored on every game so results stay comparable (BRD §7.3). */
 export const PROMPT_VERSION = 'p1';

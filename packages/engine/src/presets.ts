@@ -1,4 +1,4 @@
-import type { GameConfig, RoleCounts } from './types.js';
+import type { GameConfig, RoleCounts } from './types.ts';
 
 export const PRESETS = {
   classic6: { mafia: 2, detective: 1, doctor: 1, villager: 2 },

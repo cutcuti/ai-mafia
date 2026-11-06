@@ -1,9 +1,9 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { computeMetrics, summarize, type ModelMetrics } from './metrics.js';
-import { computeRatings } from './ratings.js';
-import type { BenchOptions, GameRecord } from './runner.js';
-import { MIN_GAMES_PER_ROLE, wilson, type Interval } from './stats.js';
+import { computeMetrics, summarize, type ModelMetrics } from './metrics.ts';
+import { computeRatings } from './ratings.ts';
+import type { BenchOptions, GameRecord } from './runner.ts';
+import { MIN_GAMES_PER_ROLE, wilson, type Interval } from './stats.ts';
 
 export interface ReportInput {
   runId: string;

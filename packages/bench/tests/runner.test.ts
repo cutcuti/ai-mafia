@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { replay } from '@ai-mafia/engine';
-import { defaultRunId, planGames, runBench, runGame, type BenchOptions } from '../src/runner.js';
+import { defaultRunId, planGames, runBench, runGame, type BenchOptions } from '../src/runner.ts';
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'bench-'));
 const fixedNow = () => new Date('2026-11-06T00:00:00.000Z');

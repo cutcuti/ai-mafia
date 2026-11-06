@@ -1,8 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent } from '@ai-mafia/engine';
 import { MODELS, type ModelSpec } from '@ai-mafia/agents';
-import { computeRatings, type RatingRow } from './ratings.js';
-import { RANDOM, type GameRecord } from './runner.js';
+import { computeRatings, type RatingRow } from './ratings.ts';
+import { RANDOM, type GameRecord } from './runner.ts';
 
 /** The rows upload_game(p) expects (see supabase/migrations). */
 export interface UploadPayload {

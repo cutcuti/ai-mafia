@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { applyResponse, createGame, nextRequest } from '../src/state.js';
-import { makeConfig } from '../src/setup.js';
-import type { GameState, InputRequest } from '../src/types.js';
-import { play } from './helpers.js';
+import { applyResponse, createGame, nextRequest } from '../src/state.ts';
+import { makeConfig } from '../src/setup.ts';
+import type { GameState, InputRequest } from '../src/types.ts';
+import { play } from './helpers.ts';
 
 /** Drive a game, choosing via `pick`; records every request seen. */
 function run(seed: number, pick: (s: GameState, req: Extract<InputRequest, { kind: 'choose' }>) => string, maxDays?: number) {

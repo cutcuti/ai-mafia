@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { as, supabaseLikeDb } from './pg.js';
+import { as, supabaseLikeDb } from './pg.ts';
 
 const minimalGame = (externalId: string, seqs = [0, 1]) => ({
   models: [{ id: 'random', provider: 'none', model: 'random', display_name: 'Random', pricing: { inputPerMTok: 0, outputPerMTok: 0 }, enabled: true }],

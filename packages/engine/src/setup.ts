@@ -1,6 +1,6 @@
-import { PRESETS, isPreset } from './presets.js';
-import type { Rng } from './rng.js';
-import type { Controller, GameConfig, Persona, Role, RoleCounts, Seat } from './types.js';
+import { PRESETS, isPreset } from './presets.ts';
+import type { Rng } from './rng.ts';
+import type { Controller, GameConfig, Persona, Role, RoleCounts, Seat } from './types.ts';
 
 export const NAMES = ['Zara', 'Omar', 'Priya', 'Leo', 'Maya', 'Kai', 'Noor', 'Rafi', 'Ines', 'Theo'];
 

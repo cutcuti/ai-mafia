@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createGame, drive, makeConfig } from '@ai-mafia/engine';
 import type { Responder } from '@ai-mafia/engine';
-import { createModelController } from '../src/factory.js';
-import { MODELS } from '../src/models.config.js';
-import { MockProvider } from '../src/providers/mock.js';
-import { CostMeter, costUsd, getModel, parseRequestId, registryErrors, type AgentCall } from '../src/registry.js';
+import { createModelController } from '../src/factory.ts';
+import { MODELS } from '../src/models.config.ts';
+import { MockProvider } from '../src/providers/mock.ts';
+import { CostMeter, costUsd, getModel, parseRequestId, registryErrors, type AgentCall } from '../src/registry.ts';
 
 const answer = (r: { tool: { name: string; schema: any } }) =>
   r.tool.name === 'speak' ? { thought: 't', speech: 'hi' } : { thought: 't', target: r.tool.schema.properties.target.enum[0] };

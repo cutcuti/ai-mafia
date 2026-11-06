@@ -2,12 +2,12 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { PRESETS, PRESET_NAMES, createGame, drive, isPreset, makeConfig, totalSeats } from '@ai-mafia/engine';
 import type { Controller, GameEvent, GameState, Responder } from '@ai-mafia/engine';
-import { dryRunProvider } from './dryrun.js';
-import { createModelController } from './factory.js';
-import { MODELS } from './models.config.js';
-import { PROMPT_VERSION } from './prompts.js';
-import { RandomController } from './random.js';
-import { CostMeter, getModel } from './registry.js';
+import { dryRunProvider } from './dryrun.ts';
+import { createModelController } from './factory.ts';
+import { MODELS } from './models.config.ts';
+import { PROMPT_VERSION } from './prompts.ts';
+import { RandomController } from './random.ts';
+import { CostMeter, getModel } from './registry.ts';
 
 const HELP = `pnpm game -- [options]
   --agents <list>     one id for every seat, or a comma list per seat: random | ${MODELS.filter((m) => m.enabled)

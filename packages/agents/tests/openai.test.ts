@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { OpenAICompatProvider, OPENROUTER_BASE_URL, openrouterProvider, type OpenAILike } from '../src/providers/openai.js';
+import { OpenAICompatProvider, OPENROUTER_BASE_URL, openrouterProvider, type OpenAILike } from '../src/providers/openai.ts';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/openai-tool-call.json', import.meta.url), 'utf8'));
 const tool = { name: 'speak', description: 'say it', schema: { type: 'object', properties: { thought: { type: 'string' } } } };

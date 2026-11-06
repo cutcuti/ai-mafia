@@ -1,7 +1,7 @@
 import { parseArgs } from 'node:util';
 import { getModel } from '@ai-mafia/agents';
-import { rebuildRatingsInDb, supabaseFromEnv, uploadRecords, type BenchDb } from './db.js';
-import { RANDOM, runBench, type BenchOptions, type BenchResult } from './runner.js';
+import { rebuildRatingsInDb, supabaseFromEnv, uploadRecords, type BenchDb } from './db.ts';
+import { RANDOM, runBench, type BenchOptions, type BenchResult } from './runner.ts';
 
 export interface SeedOptions {
   model: string;

@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PRESETS, PRESET_NAMES, configErrors, roleErrors } from '../src/presets.js';
-import { makeConfig } from '../src/setup.js';
-import { createGame } from '../src/state.js';
-import { canSee } from '../src/visibility.js';
-import { play } from './helpers.js';
+import { PRESETS, PRESET_NAMES, configErrors, roleErrors } from '../src/presets.ts';
+import { makeConfig } from '../src/setup.ts';
+import { createGame } from '../src/state.ts';
+import { canSee } from '../src/visibility.ts';
+import { play } from './helpers.ts';
 
 test('preset tables match the BRD', () => {
   assert.deepEqual(PRESETS.classic6, { mafia: 2, detective: 1, doctor: 1, villager: 2 });
