@@ -18,3 +18,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — Notes (§7.8) are a `notes` event with `seat` visibility (author only), requested by the engine at day end — BRD said "spectator", which contradicts I2 since notes feed later prompts; approved by Protik.
 - 2026-11-06 — Engine public types gain optional `GameConfig.personaMode` and a `notes` request kind / event type — approved by Protik; additive, old configs/logs stay valid.
 - 2026-11-06 — Invalid optional speak fields (`accuses`, `claimRole`) are dropped, not fatal; only missing/invalid `speech`/`target` trigger the repair retry — a wrong optional tag shouldn't cost a call. The engine's fallback `rawOutput` is the controller's final response; the model's raw output goes to agent-call logs (§7.7).
+- 2026-11-06 — Provider fixtures are hand-written to the documented response shapes (no key available to record real ones); replace with recorded responses when `pnpm test:llm` first runs.

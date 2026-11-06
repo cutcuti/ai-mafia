@@ -1,0 +1,17 @@
+{
+  "id": "msg_fixture_01",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-haiku-5-5",
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "toolu_fixture_01",
+      "name": "vote",
+      "input": { "thought": "Omar flipped his story twice. Voting him.", "target": "Omar" }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "stop_sequence": null,
+  "usage": { "input_tokens": 1834, "output_tokens": 41 }
+}

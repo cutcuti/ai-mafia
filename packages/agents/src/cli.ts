@@ -2,7 +2,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { parseArgs } from 'node:util';
 import { PRESETS, PRESET_NAMES, createGame, drive, isPreset, makeConfig, totalSeats } from '@ai-mafia/engine';
 import type { Controller, GameEvent, GameState, Responder } from '@ai-mafia/engine';
-import { ClaudeController } from './claude.js';
+import { ModelController } from './controller.js';
+import { AnthropicProvider } from './providers/anthropic.js';
 import { RandomController } from './random.js';
 
 const { values } = parseArgs({
@@ -28,8 +29,14 @@ const controllers: Controller[] = seatKinds.map((k) => (k === 'claude' ? { kind:
 const config = makeConfig({ seed, preset, controllers, rounds: Number(values.rounds), createdAt: new Date().toISOString() });
 let state = createGame(config);
 
+let anthropic: AnthropicProvider | undefined;
 const responders = new Map<string, Responder>(
-  state.seats.map((s, i) => [s.id, s.controller.kind === 'model' ? new ClaudeController(s.controller.modelId) : new RandomController(seed * 1000 + i)]),
+  state.seats.map((s, i) => [
+    s.id,
+    s.controller.kind === 'model'
+      ? new ModelController((anthropic ??= new AnthropicProvider()), { model: s.controller.modelId })
+      : new RandomController(seed * 1000 + i),
+  ]),
 );
 
 const c = { dim: '\x1b[2m', red: '\x1b[31m', yellow: '\x1b[33m', cyan: '\x1b[36m', bold: '\x1b[1m', reset: '\x1b[0m' };
