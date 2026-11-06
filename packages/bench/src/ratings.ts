@@ -67,9 +67,16 @@ function rateGame(g: RatedGame, mafiaPool: Pool, townPool: Pool) {
  * Recompute every rating from scratch (BRD §8.4) — never mutated incrementally.
  * Grouped by (promptVersion, preset); games processed in gameId order so the result is independent of input order.
  */
+/**
+ * Self-play (one model in every seat) measures the table's structural mafia edge, not skill: the same model
+ * wins and loses each game. It's excluded from ratings and leaderboard stats and used only as a baseline.
+ */
+export const isSelfPlay = (g: { seats: readonly { modelId: string }[] }) => g.seats.length > 0 && g.seats.every((s) => s.modelId === g.seats[0].modelId);
+
 export function computeRatings(games: readonly RatedGame[]): RatingRow[] {
   const groups = new Map<string, RatedGame[]>();
   for (const g of games) {
+    if (isSelfPlay(g)) continue;
     const k = `${g.promptVersion}\u0000${g.preset}`;
     groups.set(k, [...(groups.get(k) ?? []), g]);
   }

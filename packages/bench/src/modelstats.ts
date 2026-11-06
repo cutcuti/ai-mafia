@@ -1,5 +1,5 @@
 import { computeMetrics, summarize, type MetricGame, type MetricSummary } from './metrics.ts';
-import type { RatingRow } from './ratings.ts';
+import { isSelfPlay, type RatingRow } from './ratings.ts';
 import type { GameRecord } from './runner.ts';
 import { wilson, type Interval } from './stats.ts';
 
@@ -18,6 +18,7 @@ export type StatsGame = MetricGame & Pick<GameRecord, 'promptVersion' | 'preset'
 export function computeModelStats(games: readonly StatsGame[]): ModelStatsRow[] {
   const groups = new Map<string, StatsGame[]>();
   for (const g of games) {
+    if (isSelfPlay(g)) continue; // baseline only, never a model's record
     const k = `${g.promptVersion}\u0000${g.preset}`;
     groups.set(k, [...(groups.get(k) ?? []), g]);
   }

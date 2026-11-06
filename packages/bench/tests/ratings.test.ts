@@ -85,3 +85,10 @@ test('loadRecords reads bench records recursively and ignores other JSON', async
   assert.equal(loadRecords(dir).length, 3);
   assert.deepEqual(loadRecords(join(dir, 'missing')), []);
 });
+
+test('self-play games are baselines only: excluded from ratings', () => {
+  const self = (id: string, outcome: G['outcome']) => game(id, 'A', 'A', outcome);
+  assert.deepEqual(computeRatings([self('s1', 'mafia'), self('s2', 'town')]), []);
+  const mixed = computeRatings([...dominant(), self('s3', 'mafia')]);
+  assert.deepEqual(mixed, computeRatings(dominant()), 'adding self-play changes nothing');
+});
