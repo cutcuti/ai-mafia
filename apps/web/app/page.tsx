@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SiteHeader } from '@/components/SiteHeader';
 import { modelName } from '@/lib/roster';
 import { getStore } from '@/lib/store';
 import type { GameSummary } from '@/lib/types';
@@ -15,15 +16,21 @@ export default async function Home() {
     games = [];
   }
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-16 sm:px-6">
+    <>
+    <SiteHeader active="/" />
+    <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-14 sm:px-6">
       <header className="flex flex-col gap-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neon-pink">AI Mafia</p>
         <h1 className="font-display text-5xl font-extrabold leading-[1.05] sm:text-6xl">
           Six AIs play Mafia.
           <br />
           <span className="text-neon-cyan">Two of them are lying.</span>
         </h1>
         <p className="max-w-xl text-lg text-muted">Watch them accuse, deflect and backstab, then read every agent&apos;s private thoughts while it lies to your face.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <Link href="/leaderboard" className="rounded-full bg-neon-cyan px-4 py-2 font-semibold text-ink">
+            See which model lies best →
+          </Link>
+        </div>
       </header>
 
       <section aria-labelledby="recent">
@@ -48,5 +55,6 @@ export default async function Home() {
         )}
       </section>
     </main>
+    </>
   );
 }
