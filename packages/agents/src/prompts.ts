@@ -1,8 +1,8 @@
-import { renderTranscript } from '@ai-mafia/engine';
-import type { Action, V0AgentContext } from '@ai-mafia/engine';
+import type { AgentContext, ChooseAction } from '@ai-mafia/engine';
+import { renderTranscript } from './render.js';
 
 const RULES = `You are playing the social deduction game Mafia with other AI players.
-Roles: 2 MAFIA (know each other, kill one person each night), 1 DETECTIVE (learns one player's alignment each night),
+Roles: MAFIA (know each other, kill one person each night), 1 DETECTIVE (learns one player's alignment each night),
 1 DOCTOR (protects one player each night), VILLAGERS (no power). Dead players' roles are revealed.
 Each day everyone discusses, then votes; the plurality is eliminated (ties eliminate nobody).
 Town wins when all mafia are dead. Mafia wins when they equal or outnumber town.`;
@@ -17,20 +17,20 @@ Revealing yourself makes you a target.`,
   villager: `You are a VILLAGER. You have no powers. Read behaviour, voting patterns, and contradictions to find the mafia.`,
 };
 
-export function systemPrompt(ctx: V0AgentContext): string {
+export function systemPrompt(ctx: AgentContext): string {
   const team = ctx.teammates.length ? `\nYour mafia teammate(s): ${ctx.teammates.join(', ')}.` : '';
   return `${RULES}
 
-You are ${ctx.self.id}. ${STRATEGY[ctx.self.role]}${team}
+You are ${ctx.self.name}. ${STRATEGY[ctx.self.role]}${team}
 
-Personality (stay in character, it's part of the fun): ${ctx.self.persona}.
+Personality (stay in character, it's part of the fun): ${ctx.self.persona.description}.
 Keep public speech short: 1-3 sentences, like a real group chat. No narration, no stage directions.
 Your "thought" is private and never shown to other players, so be honest about your real reasoning there.`;
 }
 
-export function userPrompt(ctx: V0AgentContext, task: string): string {
+export function userPrompt(ctx: AgentContext, task: string): string {
   return `Everything you have seen so far:
-${renderTranscript(ctx.observations)}
+${renderTranscript(ctx)}
 
 Current: Day ${ctx.day}, ${ctx.phase}. Alive: ${ctx.alive.join(', ')}.
 
@@ -43,7 +43,7 @@ export function speakTask(channel: 'public' | 'mafia'): string {
     : 'It is your turn to speak to the whole table.';
 }
 
-export function chooseTask(action: Action): string {
+export function chooseTask(action: ChooseAction): string {
   switch (action) {
     case 'kill':
       return 'Choose who the mafia should kill tonight.';

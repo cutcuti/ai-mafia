@@ -9,3 +9,7 @@ One line each: date — decision — reason.
 - 2026-11-06 — Queue request steps store `{seatId, ask}`, not a full InputRequest — BRD's `{kind:'request', ...InputRequest}` collides on `kind`, and options/ids must be computed when the step reaches the head (alive set changes).
 - 2026-11-06 — `GameConfig.createdAt` is supplied by the caller and stamped on every event — engine may not read the clock (I4); DB `created_at` still records insert time.
 - 2026-11-06 — `AgentContext` gains `roster` (seatId↔name, public via game_start) — controllers need it to map names to seat ids at the boundary.
+- 2026-11-06 — `drive()` and the `Responder` interface live in the engine (`drive.ts`) — driver has no IO itself; agents' controllers satisfy `Responder` structurally.
+- 2026-11-06 — A throwing responder is turned into an empty response by `drive()` so the engine's normal fallback path handles it (I5) — one fallback code path.
+- 2026-11-06 — Thought events are emitted right after the action they explain (`replyToSeq` = action seq); fallback events right before it.
+- 2026-11-06 — Speech is trimmed then hard-cut to `maxSpeechChars` (no ellipsis), flagged `payload.truncated`.
