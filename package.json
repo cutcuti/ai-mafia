@@ -15,7 +15,8 @@
     "ratings:rebuild": "tsx --env-file-if-exists=.env packages/bench/src/rebuild.ts",
     "db:migrate": "tsx --env-file-if-exists=.env packages/bench/src/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=.env packages/bench/src/seed.ts",
-    "db:gen-seed": "tsx packages/bench/src/seedsql.ts"
+    "db:gen-seed": "tsx packages/bench/src/seedsql.ts",
+    "db:check": "tsx --env-file-if-exists=.env packages/bench/src/check.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

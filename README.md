@@ -36,6 +36,18 @@ pnpm bench -- --format h2h --a claude-haiku --b random --games 20 --dry-run   # 
 pnpm ratings:rebuild                                                # OpenSkill ratings from every stored game
 ```
 
+### Database (Supabase)
+
+```bash
+pnpm db:migrate                       # apply supabase/migrations + seed.sql to your project (needs SUPABASE_DB_URL)
+pnpm db:seed                          # play 3 demo games, upload them, rebuild ratings
+pnpm bench -- … --upload              # upload a run: one transaction per game, idempotent
+pnpm ratings:rebuild -- --db          # recompute ratings from every game in the DB → ratings table
+pnpm db:check                         # prove access rules on the live project from both sides
+```
+
+Only the server (secret key) can read games, seats, events, thoughts and model calls. A browser's publishable key reads the model list and ratings, and nothing else. `pnpm db:check` verifies this against the live project. The same SQL runs in CI on PGlite, an in-process Postgres.
+
 Each run writes one JSON file per game to `games/<runId>/` and a report to `reports/<runId>.md`. The report covers outcomes, head-to-head by direction, win rates by role with Wilson 95% CIs (draws count against the win rate), deception, lie rate, vote accuracy, persuasion, detective/doctor stats, OpenSkill ratings (overall / as mafia / as town) and cost per game with p50/p95 latency. Runs are reproducible from `--seed-base`. Up to `--concurrency` games run in parallel. `--budget-usd` is a hard stop: no new game launches if it might go over the cap, and games already running finish. Rerunning the same command resumes, skipping games already on disk.
 
 ## How it works
@@ -65,7 +77,7 @@ Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](
 - [x] M0: pnpm monorepo, step-based pure engine, replay, presets, invariant + property tests, CI
 - [x] M1: multi-provider agents (Anthropic, OpenAI, OpenRouter), prompt p1 + injection defenses, zod validation, retries, model registry + cost, personas, notes mode
 - [x] M2: benchmark runner (h2h / ffa / self), parallel games + hard budget stop, metrics, OpenSkill ratings per role, Wilson CIs, markdown reports, resumable runs
-- [ ] M3: Supabase persistence (games, events, agent calls, ratings)
+- [x] M3: Supabase persistence: migrations with RLS (events never client-readable), transactional uploads, ratings in the DB, demo seed
 - [ ] M4: Next.js replay viewer with spectator mode, vote graph, role reveals (deployed on Vercel)
 - [ ] M5: leaderboard + model profiles: *which model lies best?*
 - [ ] M6–M7: live AI games in the browser, then a human seat: you vs. five AIs
