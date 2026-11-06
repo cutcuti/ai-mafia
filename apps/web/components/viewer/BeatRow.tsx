@@ -5,6 +5,7 @@ import type { RosterSeat } from '@/lib/roster';
 import { ROLE_META, seatColor } from '@/lib/theme';
 import type { Beat } from '@/lib/timeline';
 import type { Phase, Role } from '@ai-mafia/engine';
+import { RevealCard } from './RevealCard';
 import { RoleBadge } from './SeatRail';
 
 const PHASE_LABEL: Record<string, { icon: string; label: (d: number) => string }> = {
@@ -152,6 +153,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
         <div className="my-3 flex justify-center">
           <div className="flex items-center gap-3 rounded-2xl border border-line bg-panel px-4 py-3" style={role ? { borderColor: `color-mix(in oklab, ${ROLE_META[role].color} 50%, transparent)` } : undefined}>
             {s && <Avatar seatId={s.seatId} name={s.name} seed={s.avatarSeed} size={40} dead />}
+            {role && <RevealCard role={role} size={34} />}
             <div>
               <div className="font-semibold">
                 {beat.kind === 'death' ? '💀 ' : '⚖️ '}

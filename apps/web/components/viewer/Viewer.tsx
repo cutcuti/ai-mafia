@@ -7,6 +7,7 @@ import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timeli
 import type { GameMeta } from '@/lib/views';
 import { BeatRow } from './BeatRow';
 import { Controls, type Speed } from './Controls';
+import { EndScreen } from './EndScreen';
 import { GamePanel } from './GamePanel';
 import { SeatRail } from './SeatRail';
 
@@ -162,6 +163,19 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
     [meta.id],
   );
 
+  // end screen: opens once when playback reaches game over; can be reopened from the header
+  const [showEnd, setShowEnd] = useState(false);
+  const [endSeen, setEndSeen] = useState(false);
+  useEffect(() => {
+    if (count >= total && state.outcome && !endSeen) {
+      const t = setTimeout(() => {
+        setShowEnd(true);
+        setEndSeen(true);
+      }, 900);
+      return () => clearTimeout(t);
+    }
+  }, [count, total, state.outcome, endSeen]);
+
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -179,6 +193,11 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           {meta.models.map(modelName).join(' vs ')} · {meta.preset}
         </span>
         <div className="ml-auto flex items-center gap-3">
+          {state.outcome && (
+            <button type="button" onClick={() => setShowEnd(true)} className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-muted hover:text-fg">
+              🏁 Results
+            </button>
+          )}
           {spectator && (
             <label className="hidden items-center gap-2 text-sm text-muted sm:flex">
               <input type="checkbox" checked={revealAll} onChange={(e) => setRevealAll(e.target.checked)} className="accent-[var(--color-neon-pink)]" />
@@ -244,6 +263,30 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           <GamePanel state={state} seats={seats} seatMap={seatMap} spectator={spectator} />
         </aside>
       </div>
+
+      {showEnd && state.outcome && (
+        <EndScreen
+          outcome={state.outcome}
+          seats={seats}
+          roles={state.revealed}
+          alive={state.alive}
+          shareUrl={typeof window === 'undefined' ? `/g/${meta.id}` : `${window.location.origin}/g/${meta.id}`}
+          spectator={spectator}
+          onClose={() => setShowEnd(false)}
+          onReplay={() => {
+            setShowEnd(false);
+            setCount(1);
+            setPlaying(true);
+          }}
+          onSpectator={() => {
+            setShowEnd(false);
+            void switchView(true).then(() => {
+              setCount(1);
+              setPlaying(true);
+            });
+          }}
+        />
+      )}
 
       <Controls
         count={count}
