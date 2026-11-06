@@ -1,7 +1,21 @@
 import { applyResponse, createGame, nextRequest } from './state.js';
 import type { GameConfig, GameEvent, GameState, InputRequest, InputResponse, Role } from './types.js';
 
-const same = (a: GameEvent, b: GameEvent) => JSON.stringify(a) === JSON.stringify(b);
+/** JSON with object keys sorted, so logs read back from storage (e.g. Postgres jsonb, which reorders keys) still compare equal. */
+function canonical(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+  if (v && typeof v === 'object') {
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o)
+      .filter((k) => o[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canonical(o[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(v) ?? 'null';
+}
+
+const same = (a: GameEvent, b: GameEvent) => canonical(a) === canonical(b);
 
 function assertPrefix(s: GameState, events: readonly GameEvent[]) {
   if (s.events.length > events.length) throw new Error(`replay: log ends mid-step at seq ${events.length}`);

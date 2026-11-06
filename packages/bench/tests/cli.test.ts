@@ -32,4 +32,6 @@ test('bench CLI refuses to start without needed keys, and on bad options', () =>
   assert.throws(() => run(['--format', 'h2h', '--a', 'claude-haiku', '--b', 'gpt-nano', '--games', '2'], env), (e: { stderr: string }) => /missing ANTHROPIC_API_KEY, OPENAI_API_KEY/.test(e.stderr));
   assert.throws(() => run(['--format', 'h2h', '--a', 'claude-haiku', '--b', 'random', '--games', '3', '--dry-run']), (e: { stderr: string }) => /even/.test(e.stderr));
   assert.throws(() => run(['--format', 'nope']), (e: { stderr: string }) => /--format must be/.test(e.stderr));
+  const noDb = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', SUPABASE_SERVICE_ROLE_KEY: '' };
+  assert.throws(() => run(['--format', 'self', '--model', 'random', '--games', '1', '--upload'], noDb), (e: { stderr: string }) => /SUPABASE_SERVICE_ROLE_KEY/.test(e.stderr));
 });

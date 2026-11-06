@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { PRESET_NAMES, isPreset } from '@ai-mafia/engine';
 import { getModel } from '@ai-mafia/agents';
+import { supabaseFromEnv, uploadRecords, type BenchDb } from './db.js';
 import { buildReport, writeReport } from './report.js';
 import { RANDOM, defaultRunId, runBench, type BenchOptions, type Format } from './runner.js';
 
@@ -17,6 +18,8 @@ const HELP = `pnpm bench -- --format <h2h|ffa|self> [options]
   --run-id <id>       output folder name                                      [default derived from options]
   --out <dir>         games root                                              [default games]
   --reports <dir>     where reports/<runId>.md goes                           [default reports]
+  --upload            upload every finished game of the run to Supabase (idempotent; needs
+                      NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env)
   --dry-run           mock every model offline (no keys, no cost)
 models: registry ids from packages/agents/src/models.config.ts, or "${RANDOM}"`;
 
@@ -38,6 +41,7 @@ const { values } = parseArgs({
     out: { type: 'string', default: 'games' },
     reports: { type: 'string', default: 'reports' },
     'dry-run': { type: 'boolean', default: false },
+    upload: { type: 'boolean', default: false },
     help: { type: 'boolean', short: 'h', default: false },
   },
 });
@@ -88,6 +92,15 @@ try {
   fail((e as Error).message);
 }
 
+let db: BenchDb | undefined;
+if (values.upload) {
+  try {
+    db = supabaseFromEnv();
+  } catch (e) {
+    fail((e as Error).message);
+  }
+}
+
 let result;
 try {
   result = await runBench(opts);
@@ -111,3 +124,11 @@ console.log(`\nrun ${result.runId}`);
 for (const line of report.summary) console.log(line);
 console.log(`\ngames  → ${opts.outDir}/${result.runId}/`);
 console.log(`report → ${file}`);
+
+if (db) {
+  const up = await uploadRecords(db, result.records, (done, total) => process.stdout.write(`\r  uploading ${done}/${total}   `));
+  process.stdout.write('\n');
+  console.log(`uploaded ${up.uploaded}/${result.records.length} games to Supabase${up.failed.length ? ` — ${up.failed.length} failed:` : ''}`);
+  for (const f of up.failed) console.error(`  ${f.gameId}: ${f.error}`);
+  if (up.failed.length) process.exit(2);
+}

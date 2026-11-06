@@ -41,6 +41,15 @@ test('replay of a partial log reproduces every intermediate state', async () => 
   for (const s of states) assert.deepEqual(replay(config, s.events), s);
 });
 
+test('replay ignores object key order (logs read back from jsonb storage)', async () => {
+  const { config, result } = await play(13);
+  const reorder = (v: unknown): unknown =>
+    Array.isArray(v) ? v.map(reorder) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).reverse().map(([k, x]) => [k, reorder(x)])) : v;
+  const shuffled = result.events.map((e) => reorder(e)) as typeof result.events;
+  assert.notEqual(JSON.stringify(shuffled[5]), JSON.stringify(result.events[5]));
+  assert.deepEqual(replay(config, shuffled), result);
+});
+
 test('replay rejects a tampered log', async () => {
   const { config, result } = await play(8);
   const tampered = structuredClone(result.events);

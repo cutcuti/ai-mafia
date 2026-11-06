@@ -57,6 +57,7 @@ export interface SeatRecord {
   name: string;
   role: Role;
   modelId: string;
+  personaId?: string;
 }
 
 /** One finished game on disk — the unit every metric and rating is computed from. */
@@ -191,7 +192,7 @@ export async function runGame(
     config,
     outcome: end.outcome!,
     days: end.day,
-    seats: end.seats.map((s, i) => ({ id: s.id, name: s.name, role: s.role, modelId: spec.seatModels[i] })),
+    seats: end.seats.map((s, i) => ({ id: s.id, name: s.name, role: s.role, modelId: spec.seatModels[i], personaId: s.persona.id })),
     events: end.events,
     agentCalls: meter.calls,
     costUsd: meter.totalUsd,
