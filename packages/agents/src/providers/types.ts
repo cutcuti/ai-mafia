@@ -26,6 +26,8 @@ export interface CompletionResult {
   usage: Usage;
   latencyMs: number;
   raw: unknown;
+  /** Retries spent before this result (set by ReliableProvider). */
+  retries?: number;
 }
 
 /** One adapter per provider (BRD §7.5). */
