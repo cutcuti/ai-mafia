@@ -20,3 +20,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — Invalid optional speak fields (`accuses`, `claimRole`) are dropped, not fatal; only missing/invalid `speech`/`target` trigger the repair retry — a wrong optional tag shouldn't cost a call. The engine's fallback `rawOutput` is the controller's final response; the model's raw output goes to agent-call logs (§7.7).
 - 2026-11-06 — Provider fixtures are hand-written to the documented response shapes (no key available to record real ones); replace with recorded responses when `pnpm test:llm` first runs.
 - 2026-11-06 — OpenAI-compatible adapter uses Chat Completions (not Responses API) — it's what OpenRouter and most open-model hosts speak.
+- 2026-11-06 — Claude Opus 5.5 / Sonnet 5.5 / Fable 5.1 return 400 on forced `tool_choice`; those registry entries use `toolChoice: 'auto'` + an explicit 'call the tool' instruction, with zod validation + repair retry as the safety net. Haiku 5.5 keeps forced tools.

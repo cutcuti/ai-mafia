@@ -38,6 +38,16 @@ test('forces the tool, passes system/user, and returns tool input + usage + late
   assert.equal((opts as { signal: AbortSignal }).signal, ctrl.signal);
 });
 
+test('auto mode (models that reject forced tools): tool_choice auto, instruction added, effort passed', async () => {
+  const { client, calls } = fake({ ...fixture, content: [{ type: 'thinking', thinking: '', signature: 'x' }, ...fixture.content] });
+  const r = await new AnthropicProvider(client).complete({ model: 'claude-sonnet-5-5', system: 'S', user: 'U', tool, maxOutputTokens: 4000, toolChoice: 'auto', effort: 'low' });
+  assert.equal((r.toolInput as { target: string }).target, 'Omar', 'tool_use found after a thinking block');
+  const body = calls[0].body as Anthropic.MessageCreateParamsNonStreaming & { output_config?: unknown };
+  assert.deepEqual(body.tool_choice, { type: 'auto' });
+  assert.match(String(body.system), /calling the "vote" tool/);
+  assert.deepEqual(body.output_config, { effort: 'low' });
+});
+
 test('no tool_use block → undefined toolInput (controller validates and repairs)', async () => {
   const { client } = fake({ ...fixture, content: [{ type: 'text', text: 'I refuse to lie.' }] });
   const r = await new AnthropicProvider(client).complete({ model: 'm', system: 'S', user: 'U', tool, maxOutputTokens: 300 });

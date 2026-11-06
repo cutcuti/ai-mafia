@@ -12,6 +12,13 @@ export interface CompletionRequest {
   user: string;
   tool: ToolSpec;
   maxOutputTokens: number;
+  /**
+   * 'forced' (default) pins tool_choice to this tool. 'auto' is for models that reject forced tool use
+   * (Claude Opus 5.5 / Sonnet 5.5 / Fable 5.1): tool_choice auto + an explicit instruction; validation still applies.
+   */
+  toolChoice?: 'forced' | 'auto';
+  /** Reasoning effort for models that support it. */
+  effort?: 'low' | 'medium' | 'high';
   signal?: AbortSignal;
 }
 

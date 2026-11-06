@@ -14,6 +14,8 @@ export interface ModelControllerOptions {
   maxOutputTokens?: number;
   /** Extra attempts after an answer fails validation (BRD §7.4: one repair retry). */
   repairRetries?: number;
+  toolChoice?: 'forced' | 'auto';
+  effort?: 'low' | 'medium' | 'high';
 }
 
 /** LLM-backed seat: prompt → forced tool call on any Provider → zod-validated InputResponse. */
@@ -36,6 +38,8 @@ export class ModelController implements Controller {
         user,
         tool: tool.spec,
         maxOutputTokens: this.opts.maxOutputTokens ?? 600,
+        toolChoice: this.opts.toolChoice,
+        effort: this.opts.effort,
       });
       const parsed = tool.parse(last.toolInput);
       if (parsed.ok) return parsed.response;

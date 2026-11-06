@@ -4,7 +4,7 @@ import type { CompletionRequest, CompletionResult, Provider } from './types.js';
 /** Minimal slice of the SDK client we use — lets tests inject a fixture-backed fake. */
 export type AnthropicLike = Pick<Anthropic, 'messages'>;
 
-/** Anthropic Messages API with a forced tool call (BRD §7.4). SDK retries are off: ours (§7.6) handle it. */
+/** Anthropic Messages API with a forced (or, where the model requires it, auto) tool call (BRD §7.4). SDK retries are off: ours (§7.6) handle it. */
 export class AnthropicProvider implements Provider {
   readonly id = 'anthropic';
   private readonly client: AnthropicLike;
@@ -14,15 +14,17 @@ export class AnthropicProvider implements Provider {
   }
 
   async complete(req: CompletionRequest): Promise<CompletionResult> {
+    const auto = req.toolChoice === 'auto';
     const t0 = performance.now();
     const res = await this.client.messages.create(
       {
         model: req.model,
         max_tokens: req.maxOutputTokens,
-        system: req.system,
+        system: auto ? `${req.system}\n\nAlways answer by calling the "${req.tool.name}" tool exactly once. Do not reply with plain text.` : req.system,
         messages: [{ role: 'user', content: req.user }],
         tools: [{ name: req.tool.name, description: req.tool.description, input_schema: req.tool.schema as Anthropic.Tool.InputSchema }],
-        tool_choice: { type: 'tool', name: req.tool.name },
+        tool_choice: auto ? { type: 'auto' } : { type: 'tool', name: req.tool.name },
+        ...(req.effort ? { output_config: { effort: req.effort } } : {}),
       },
       { signal: req.signal },
     );
