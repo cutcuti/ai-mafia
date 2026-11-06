@@ -8,3 +8,6 @@ export * from './providers/mock.js';
 export * from './providers/anthropic.js';
 export * from './providers/openai.js';
 export * from './reliability.js';
+export * from './models.config.js';
+export * from './registry.js';
+export * from './factory.js';

@@ -21,3 +21,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — Provider fixtures are hand-written to the documented response shapes (no key available to record real ones); replace with recorded responses when `pnpm test:llm` first runs.
 - 2026-11-06 — OpenAI-compatible adapter uses Chat Completions (not Responses API) — it's what OpenRouter and most open-model hosts speak.
 - 2026-11-06 — Claude Opus 5.5 / Sonnet 5.5 / Fable 5.1 return 400 on forced `tool_choice`; those registry entries use `toolChoice: 'auto'` + an explicit 'call the tool' instruction, with zod validation + repair retry as the safety net. Haiku 5.5 keeps forced tools.
+- 2026-11-06 — Non-Anthropic prices come from OpenRouter's public /models list (OpenAI direct assumed equal to OpenRouter pass-through); Gemini runs via OpenRouter until a Google adapter exists. AgentCall records are emitted per provider attempt (a repair retry is its own call).
