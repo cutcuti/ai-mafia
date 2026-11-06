@@ -30,20 +30,26 @@ export function SeatRail({ seats, state, spectator }: { seats: RosterSeat[]; sta
         return (
           <li
             key={s.seatId}
-            className={`flex shrink-0 items-center gap-3 rounded-2xl border px-3 py-2 transition-colors lg:shrink ${acting ? 'border-transparent bg-panel-2' : 'border-line/60 bg-panel/70'}`}
+            className={`flex shrink-0 items-center gap-2 rounded-2xl border px-2 py-1.5 transition-colors lg:shrink lg:gap-3 lg:px-3 lg:py-2 ${acting ? 'border-transparent bg-panel-2' : 'border-line/60 bg-panel/70'}`}
             style={acting ? { boxShadow: `0 0 0 2px ${seatColor(s.seatId)}` } : undefined}
           >
-            <Avatar seatId={s.seatId} name={s.name} seed={s.avatarSeed} size={36} dead={dead} />
+            <Avatar seatId={s.seatId} name={s.name} seed={s.avatarSeed} size={30} dead={dead} />
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={`font-semibold ${dead ? 'text-faint line-through' : ''}`} style={dead ? undefined : { color: seatColor(s.seatId) }}>
+              <div className="flex items-center gap-1.5">
+                <span className={`text-sm font-semibold lg:text-base ${dead ? 'text-faint line-through' : ''}`} style={dead ? undefined : { color: seatColor(s.seatId) }}>
                   {s.name}
                 </span>
                 {dead && <span className="text-xs text-faint">💀</span>}
+                {/* mobile: role as a single emoji to keep the strip compact */}
+                {role && (
+                  <span className="lg:hidden" title={ROLE_META[role].label} aria-label={ROLE_META[role].label}>
+                    {ROLE_META[role].emoji}
+                  </span>
+                )}
               </div>
               <div className="hidden truncate text-xs text-muted lg:block">{s.personaLabel}</div>
               {role && (
-                <div className="mt-1 flex flex-wrap items-center gap-1">
+                <div className="mt-1 hidden flex-wrap items-center gap-1 lg:flex">
                   <RoleBadge role={role} />
                   {(spectator || state.phase === 'end') && s.modelId && <span className="text-[11px] text-muted">{modelName(s.modelId)}</span>}
                 </div>

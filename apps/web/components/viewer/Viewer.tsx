@@ -114,6 +114,10 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   // keyboard: space, ←, →  (ignored while typing or when a control has focus)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSheet(false);
+        return;
+      }
       const t = e.target as HTMLElement | null;
       if (t && (t.closest('input, textarea, select, button, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey)) return;
       if (e.key === ' ') {
@@ -163,6 +167,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
     [meta.id],
   );
 
+  const [sheet, setSheet] = useState(false);
+
   // end screen: opens once when playback reaches game over; can be reopened from the header
   const [showEnd, setShowEnd] = useState(false);
   const [endSeen, setEndSeen] = useState(false);
@@ -177,9 +183,13 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
   }, [count, total, state.outcome, endSeen]);
 
   const end = useRef<HTMLDivElement>(null);
+  const prevCount = useRef<number | null>(null);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  }, [count]);
+    // jump on load / seeks, glide during normal playback
+    const smooth = prevCount.current !== null && Math.abs(count - prevCount.current) === 1;
+    prevCount.current = count;
+    end.current?.scrollIntoView({ block: 'end', behavior: smooth ? 'smooth' : 'instant' });
+  }, [count, beats]);
 
   const shown = beats.slice(0, count);
 
@@ -194,8 +204,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
         </span>
         <div className="ml-auto flex items-center gap-3">
           {state.outcome && (
-            <button type="button" onClick={() => setShowEnd(true)} className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-muted hover:text-fg">
-              🏁 Results
+            <button type="button" onClick={() => setShowEnd(true)} className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-muted hover:text-fg" aria-label="Results">
+              🏁<span className="hidden sm:inline"> Results</span>
             </button>
           )}
           {spectator && (
@@ -216,7 +226,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
             }`}
           >
             <span aria-hidden>{spectator ? '👁️' : '🙈'}</span>
-            {specLoading ? 'Loading…' : 'Spectator mode'}
+            <span className={spectator ? '' : 'hidden sm:inline'}>{specLoading ? 'Loading…' : 'Spectator'}</span>
+            <span className="hidden sm:inline">{specLoading ? '' : ' mode'}</span>
             <span className={`relative h-4 w-7 rounded-full ${spectator ? 'bg-neon-pink' : 'bg-line'}`} aria-hidden>
               <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-ink transition-all ${spectator ? 'left-3.5' : 'left-0.5'}`} />
             </span>
@@ -229,8 +240,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
         </p>
       )}
 
-      <div className="grid min-h-0 flex-1 grid-rows-[auto_1fr] lg:grid-cols-[260px_minmax(0,1fr)_280px] lg:grid-rows-1">
-        <aside className="border-b border-line/60 p-3 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_1fr] lg:grid-cols-[260px_minmax(0,1fr)_280px] lg:grid-rows-1">
+        <aside className="min-w-0 border-b border-line/60 px-3 py-2 lg:overflow-y-auto lg:border-b-0 lg:border-r lg:p-3">
           <SeatRail seats={seats} state={state} spectator={spectator} />
         </aside>
 
@@ -263,6 +274,20 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           <GamePanel state={state} seats={seats} seatMap={seatMap} spectator={spectator} />
         </aside>
       </div>
+
+      {/* Mobile: game panel as a bottom sheet (BRD §10.3) */}
+      {sheet && (
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Game panel" onClick={() => setSheet(false)}>
+          <div className="absolute inset-0 bg-ink/60" />
+          <div
+            className="absolute inset-x-0 bottom-0 max-h-[75dvh] overflow-y-auto rounded-t-3xl border-t border-line bg-ink p-4 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line" aria-hidden />
+            <GamePanel state={state} seats={seats} seatMap={seatMap} spectator={spectator} />
+          </div>
+        </div>
+      )}
 
       {showEnd && state.outcome && (
         <EndScreen
@@ -301,6 +326,8 @@ export function Viewer({ meta, events, initialSeq }: ViewerProps) {
           seek(n);
         }}
         onSpeed={setSpeed}
+        onPanel={() => setSheet(true)}
+        panelBadge={state.phase === 'vote' && state.votes.length ? state.votes.length : undefined}
       />
     </div>
   );
