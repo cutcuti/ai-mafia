@@ -36,6 +36,13 @@ pnpm bench -- --format h2h --a claude-haiku --b random --games 20 --dry-run   # 
 pnpm ratings:rebuild                                                # OpenSkill ratings from every stored game
 ```
 
+### Web app
+
+```bash
+pnpm web:dev                          # http://localhost:3000 — reads the repo-root .env
+pnpm e2e                              # Playwright smoke tests (production build, fixture game, no keys)
+```
+
 ### Database (Supabase)
 
 ```bash
@@ -53,10 +60,13 @@ Each run writes one JSON file per game to `games/<runId>/` and a report to `repo
 ## How it works
 
 ```
+apps/
+└─ web/      Next.js viewer (Vercel): server-side view filtering, playback, spectator mode, vote graph
 packages/
 ├─ engine/   pure, deterministic state machine — zero deps, no IO, no Math.random, no clock
 ├─ agents/   controllers, prompts, provider adapters (Anthropic, OpenAI-compatible), model registry, `pnpm game` CLI
-└─ bench/    runner (h2h / ffa / self), metrics, OpenSkill ratings, Wilson CIs, reports, `pnpm bench` CLI
+└─ bench/    runner (h2h / ffa / self), metrics, OpenSkill ratings, Wilson CIs, reports, uploads, `pnpm bench` CLI
+supabase/    migrations (tables, RLS, server-only write functions) + generated seed
 ```
 
 - **Step-based engine.** `createGame(config)` → `nextRequest(state)` → `applyResponse(state, requestId, response)` → … The whole game is a serializable `GameState`, so the same engine runs CLI batches, serverless live games (one step per request) and human seats that pause for input. `drive()` is the tiny shared loop.
@@ -78,7 +88,7 @@ Full spec: [`docs/BRD.md`](docs/BRD.md). Judgement calls: [`docs/DECISIONS.md`](
 - [x] M1: multi-provider agents (Anthropic, OpenAI, OpenRouter), prompt p1 + injection defenses, zod validation, retries, model registry + cost, personas, notes mode
 - [x] M2: benchmark runner (h2h / ffa / self), parallel games + hard budget stop, metrics, OpenSkill ratings per role, Wilson CIs, markdown reports, resumable runs
 - [x] M3: Supabase persistence: migrations with RLS (events never client-readable), transactional uploads, ratings in the DB, demo seed
-- [ ] M4: Next.js replay viewer with spectator mode, vote graph, role reveals (deployed on Vercel)
+- [x] M4: Next.js replay viewer: chat stream, playback + scrubber, spectator mode (thoughts, roles, night channel, lie markers), vote tracker + graph, role reveals, end screen, mobile layout, Playwright smoke tests
 - [ ] M5: leaderboard + model profiles: *which model lies best?*
 - [ ] M6–M7: live AI games in the browser, then a human seat: you vs. five AIs
 - [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)
