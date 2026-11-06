@@ -42,6 +42,18 @@ export interface LiveStore {
   spendToday(): Promise<number>;
   gamesCreatedToday(userId: string): Promise<number>;
   listActive(limit: number): Promise<LiveGame[]>;
+  /** Most recent engine fallbacks across games (admin only — contains raw model output). */
+  recentFallbacks(limit: number): Promise<FallbackRow[]>;
+}
+
+export interface FallbackRow {
+  gameId: string;
+  seq: number;
+  seatId: string | null;
+  text: string;
+  reason: string;
+  rawOutput: unknown;
+  createdAt: string;
 }
 
 /** Cost and abuse limits (BRD §9.5). */

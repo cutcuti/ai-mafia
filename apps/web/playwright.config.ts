@@ -26,6 +26,7 @@ export default defineConfig({
       MAFIA_FIXTURE_DIR: 'e2e/fixtures',
       MAFIA_DEV_USER: '1',
       MAFIA_DRY_RUN: '1',
+      ADMIN_GITHUB_IDS: 'dev',
       MAX_LIVE_GAMES_PER_USER_PER_DAY: '50',
       CREATE_PER_USER_PER_HOUR: '100',
       CREATE_PER_IP_PER_HOUR: '100',

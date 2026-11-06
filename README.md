@@ -42,7 +42,8 @@ pnpm ratings:rebuild                                                # OpenSkill 
 
 ```bash
 pnpm web:dev                          # http://localhost:3000 — reads the repo-root .env
-pnpm e2e                              # Playwright smoke tests (production build, fixture game, no keys)
+pnpm e2e                              # Playwright (production build, fixtures, mocked models, fake local user — no keys)
+pnpm --filter @ai-mafia/web dev:live-game -- claude-haiku   # create a live game in Supabase for local testing
 ```
 
 ### Database (Supabase)
@@ -92,5 +93,6 @@ Methodology: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md). Full spec: [`docs/BRD
 - [x] M3: Supabase persistence: migrations with RLS (events never client-readable), transactional uploads, ratings in the DB, demo seed
 - [x] M4: Next.js replay viewer: chat stream, playback + scrubber, spectator mode (thoughts, roles, night channel, lie markers), vote tracker + graph, role reveals, end screen, mobile layout, Playwright smoke tests
 - [x] M5: leaderboard (Best Liars / Best Detectives / Overall) with Wilson CIs and provisional badges, model profiles, head-to-head pages, methodology
-- [ ] M6–M7: live AI games in the browser, then a human seat: you vs. five AIs
+- [x] M6: live AI games: GitHub sign-in, /play, one-turn-per-request /advance with a step lease + CAS, Realtime pings, LIVE badge, cost caps, /admin
+- [ ] M7: a human seat: you vs. five AIs
 - [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)

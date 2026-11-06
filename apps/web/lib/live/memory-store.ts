@@ -63,4 +63,14 @@ export class MemoryLiveStore implements LiveStore {
   async listActive(limit: number) {
     return [...this.games.values()].filter((g) => g.status === 'running').slice(0, limit);
   }
+  async recentFallbacks(limit: number) {
+    return [...this.games.values()]
+      .flatMap((g) =>
+        g.state.events
+          .filter((e) => e.type === 'fallback')
+          .map((e) => ({ gameId: g.id, seq: e.seq, seatId: e.actorSeatId ?? null, text: e.text, reason: String(e.payload?.reason ?? ''), rawOutput: e.payload?.rawOutput, createdAt: e.createdAt })),
+      )
+      .slice(-limit)
+      .reverse();
+  }
 }

@@ -25,6 +25,22 @@ test.describe('live AI games (offline: mocked models, in-memory store)', () => {
     await expect(page.getByLabel('Live game')).toHaveCount(0);
   });
 
+  test('admin sees today’s spend and running games, and can abort one', async ({ page, request }) => {
+    const { id } = await (await request.post('/api/games', { data: { preset: 'classic6', models: ['claude-haiku'] } })).json();
+    await page.goto('/admin');
+    await expect(page.getByRole('heading', { name: 'Admin' })).toBeVisible();
+    await expect(page.getByText('Spent today (UTC)')).toBeVisible();
+    const row = page.getByRole('row').filter({ has: page.locator(`a[href="/g/${id}"]`) });
+    await expect(row).toBeVisible();
+    page.once('dialog', (d) => d.accept());
+    await row.getByRole('button', { name: 'Abort' }).click();
+    await expect(page.locator(`a[href="/g/${id}"]`)).toHaveCount(0);
+    const adv = await (await request.post(`/api/games/${id}/advance`)).json();
+    expect(adv.status).toBe('aborted');
+    await page.goto(`/g/${id}`);
+    await expect(page.getByText(/This game was stopped/)).toBeVisible();
+  });
+
   test('advance on a finished replay game is refused (not a live game)', async ({ request }) => {
     const r = await request.post('/api/games/demo-s1/advance');
     expect([404, 409]).toContain(r.status());

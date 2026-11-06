@@ -135,4 +135,23 @@ export class SupabaseLiveStore implements LiveStore {
     if (error) throw new Error(`list active: ${error.message}`);
     return (data ?? []).map(toLive);
   }
+
+  async recentFallbacks(limit: number) {
+    const { data, error } = await this.db
+      .from('events')
+      .select('game_id, seq, actor_seat_id, text, payload, created_at')
+      .eq('type', 'fallback')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(`fallbacks: ${error.message}`);
+    return (data ?? []).map((e) => ({
+      gameId: String(e.game_id),
+      seq: Number(e.seq),
+      seatId: (e.actor_seat_id as string) ?? null,
+      text: String(e.text),
+      reason: String((e.payload as Record<string, unknown>)?.reason ?? ''),
+      rawOutput: (e.payload as Record<string, unknown>)?.rawOutput,
+      createdAt: String(e.created_at),
+    }));
+  }
 }
