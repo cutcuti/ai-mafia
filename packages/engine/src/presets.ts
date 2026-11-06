@@ -42,6 +42,7 @@ export function configErrors(c: GameConfig): string[] {
     }
   } else if (c.preset !== 'custom') errs.push(`unknown preset ${c.preset}`);
   if (!c.gameId) errs.push('gameId required');
+  if (c.personaMode !== undefined && c.personaMode !== 'default' && c.personaMode !== 'neutral') errs.push(`unknown personaMode ${c.personaMode}`);
   if (!Number.isInteger(c.seed)) errs.push('seed must be an integer');
   if (!Number.isInteger(c.rounds) || c.rounds < 1) errs.push('rounds must be ≥ 1');
   if (!Number.isInteger(c.maxDays) || c.maxDays < 1) errs.push('maxDays must be ≥ 1');

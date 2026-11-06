@@ -6,6 +6,9 @@ export const NAMES = ['Zara', 'Omar', 'Priya', 'Leo', 'Maya', 'Kai', 'Noor', 'Ra
 
 const persona = (id: string, label: string, description: string): Persona => ({ id, label, description, avatarSeed: id });
 
+/** Benchmark persona: same for every seat so personality doesn't add variance. */
+export const NEUTRAL_PERSONA: Persona = persona('neutral', 'Neutral', 'plain and clear; no particular personality or slang');
+
 /** Tone only — personas never change rules. Code-reviewed: no real people, no stereotypes of protected groups. */
 export const PERSONAS: Persona[] = [
   persona('online', 'Chronically online', 'types in lowercase, says "fr", "lowkey" and "no cap", gets defensive fast'),
@@ -48,6 +51,7 @@ export function makeConfig(o: Partial<GameConfig> & { seed: number }): GameConfi
     rounds: o.rounds ?? 2,
     maxDays: o.maxDays ?? 8,
     maxSpeechChars: o.maxSpeechChars ?? 280,
+    personaMode: o.personaMode ?? 'default',
     createdAt: o.createdAt ?? '1970-01-01T00:00:00.000Z',
   };
 }
@@ -60,13 +64,15 @@ export function createSeats(config: GameConfig, rng: Rng): Seat[] {
   }
   if (roles.length > NAMES.length) throw new Error(`at most ${NAMES.length} seats supported`);
   const names = rng.shuffle(NAMES).slice(0, roles.length);
+  // always draw personas so names/roles for a seed are identical in both persona modes
   const personas = rng.shuffle(PERSONAS);
   const shuffledRoles = rng.shuffle(roles);
+  const neutral = config.personaMode === 'neutral';
   return names.map((name, i) => ({
     id: `s${i + 1}`,
     name,
     role: shuffledRoles[i],
-    persona: personas[i % personas.length],
+    persona: neutral ? { ...NEUTRAL_PERSONA, avatarSeed: name } : personas[i % personas.length],
     controller: config.controllers[i],
     alive: true,
   }));

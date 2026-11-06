@@ -84,6 +84,8 @@ export interface GameConfig {
   rounds: number; // discussion rounds per day
   maxDays: number; // draw after this many days
   maxSpeechChars: number;
+  /** 'neutral' gives every seat the same plain persona (benchmark mode, less variance). Default 'default'. */
+  personaMode?: 'default' | 'neutral';
   /** Stamped on every event. Supplied by the caller so the engine never reads the clock (I4). */
   createdAt: string;
 }
