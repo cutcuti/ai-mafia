@@ -1,4 +1,5 @@
 export * from './controller.js';
+export * from './tools.js';
 export * from './random.js';
 export * from './claude.js';
 export * from './prompts.js';

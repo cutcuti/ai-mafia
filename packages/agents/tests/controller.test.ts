@@ -30,7 +30,7 @@ test('a full game with mock-model seats and random seats completes', async () =>
   const m = new Map<string, Responder>(
     s.seats.map((x, i) => [
       x.id,
-      i % 2 ? new RandomController(i) : new ModelController(new MockProvider((r) => ({ thought: 't', speech: 'sus', target: ((r.tool.schema as any).properties.target?.enum ?? [])[0] })), { model: 'm' }),
+      i % 2 ? new RandomController(i) : new ModelController(new MockProvider((r) => (r.tool.name === 'speak' ? { thought: 't', speech: 'sus' } : { thought: 't', target: (r.tool.schema as any).properties.target.enum[0] })), { model: 'm' }),
     ]),
   );
   const end = await drive(s, m);
