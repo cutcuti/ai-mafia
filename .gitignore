@@ -1,6 +1,6 @@
 node_modules/
-games/
-reports/
+/games/
+/reports/
 .env
 *.tsbuildinfo
 ratings.json
