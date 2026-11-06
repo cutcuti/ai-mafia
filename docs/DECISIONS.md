@@ -19,3 +19,4 @@ One line each: date — decision — reason.
 - 2026-11-06 — Engine public types gain optional `GameConfig.personaMode` and a `notes` request kind / event type — approved by Protik; additive, old configs/logs stay valid.
 - 2026-11-06 — Invalid optional speak fields (`accuses`, `claimRole`) are dropped, not fatal; only missing/invalid `speech`/`target` trigger the repair retry — a wrong optional tag shouldn't cost a call. The engine's fallback `rawOutput` is the controller's final response; the model's raw output goes to agent-call logs (§7.7).
 - 2026-11-06 — Provider fixtures are hand-written to the documented response shapes (no key available to record real ones); replace with recorded responses when `pnpm test:llm` first runs.
+- 2026-11-06 — OpenAI-compatible adapter uses Chat Completions (not Responses API) — it's what OpenRouter and most open-model hosts speak.

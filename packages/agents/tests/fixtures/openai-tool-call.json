@@ -1,0 +1,24 @@
+{
+  "id": "chatcmpl-fixture01",
+  "object": "chat.completion",
+  "created": 1793000000,
+  "model": "gpt-mini",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_fixture01",
+            "type": "function",
+            "function": { "name": "speak", "arguments": "{\"thought\":\"Kai is pushing too hard.\",\"speech\":\"Kai, why so loud about Noor?\",\"accuses\":\"Kai\"}" }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": { "prompt_tokens": 1520, "completion_tokens": 37, "total_tokens": 1557 }
+}

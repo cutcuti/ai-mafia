@@ -6,3 +6,4 @@ export * from './render.js';
 export * from './providers/types.js';
 export * from './providers/mock.js';
 export * from './providers/anthropic.js';
+export * from './providers/openai.js';
