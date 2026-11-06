@@ -1,0 +1,152 @@
+{
+  "generatedAt": "2026-11-06T18:53:21.810Z",
+  "games": 3,
+  "ratings": [
+    {
+      "modelId": "claude-haiku",
+      "scope": "as_mafia",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 27.985031900351895,
+      "sigma": 8.305513861711521,
+      "ordinal": 3.068490315217332,
+      "games": 1
+    },
+    {
+      "modelId": "random",
+      "scope": "as_mafia",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 24.71625365103065,
+      "sigma": 8.305513861711521,
+      "ordinal": -0.20028793410391188,
+      "games": 1
+    },
+    {
+      "modelId": "claude-haiku",
+      "scope": "as_town",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 25.28374634896935,
+      "sigma": 8.293789918930313,
+      "ordinal": 0.4023765921784097,
+      "games": 1
+    },
+    {
+      "modelId": "random",
+      "scope": "as_town",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 22.014968099648105,
+      "sigma": 8.293789918930313,
+      "ordinal": -2.866401657142834,
+      "games": 1
+    },
+    {
+      "modelId": "claude-haiku",
+      "scope": "overall",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 28.111733383276945,
+      "sigma": 8.287169396343646,
+      "ordinal": 3.2502251942460063,
+      "games": 2
+    },
+    {
+      "modelId": "random",
+      "scope": "overall",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "mu": 21.888624028227536,
+      "sigma": 8.281020618915516,
+      "ordinal": -2.954437828519012,
+      "games": 2
+    }
+  ],
+  "stats": [
+    {
+      "modelId": "claude-haiku",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "games": 2,
+      "stats": {
+        "modelId": "claude-haiku",
+        "games": 2,
+        "mafiaGames": 1,
+        "mafiaWinRate": 1,
+        "townGames": 1,
+        "townWinRate": 1,
+        "draws": 0,
+        "townVoteAccuracy": 1,
+        "deceptionScore": 1,
+        "survivalMafia": 1,
+        "survivalTown": 1.25,
+        "detectiveHitRate": 0,
+        "detectiveBaseRate": 0.4,
+        "detectiveConversion": null,
+        "doctorBlockRate": 0,
+        "persuasion": 0.3076923076923077,
+        "lieRate": 0,
+        "fallbackRate": 0,
+        "costPerGame": 0.0050392,
+        "tokensPerGame": 37310,
+        "latencyP50": 1639,
+        "latencyP95": 2598,
+        "mafiaWin": {
+          "p": 1,
+          "lo": 0.20654329147389294,
+          "hi": 1,
+          "n": 1
+        },
+        "townWin": {
+          "p": 1,
+          "lo": 0.20654329147389294,
+          "hi": 1,
+          "n": 1
+        }
+      }
+    },
+    {
+      "modelId": "random",
+      "promptVersion": "p1",
+      "preset": "classic6",
+      "games": 2,
+      "stats": {
+        "modelId": "random",
+        "games": 2,
+        "mafiaGames": 1,
+        "mafiaWinRate": 0,
+        "townGames": 1,
+        "townWinRate": 0,
+        "draws": 0,
+        "townVoteAccuracy": 0,
+        "deceptionScore": -1,
+        "survivalMafia": 1.5,
+        "survivalTown": 1,
+        "detectiveHitRate": 0.5,
+        "detectiveBaseRate": 0.3666666666666667,
+        "detectiveConversion": null,
+        "doctorBlockRate": 1,
+        "persuasion": 0.13333333333333333,
+        "lieRate": 0,
+        "fallbackRate": 0,
+        "costPerGame": 0,
+        "tokensPerGame": 0,
+        "latencyP50": null,
+        "latencyP95": null,
+        "mafiaWin": {
+          "p": 0,
+          "lo": 0,
+          "hi": 0.7934567085261071,
+          "n": 1
+        },
+        "townWin": {
+          "p": 0,
+          "lo": 0,
+          "hi": 0.7934567085261071,
+          "n": 1
+        }
+      }
+    }
+  ]
+}

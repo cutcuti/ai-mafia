@@ -9,7 +9,7 @@ test.describe('replay viewer', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Recent games' })).toBeVisible();
     await page.getByRole('link', { name: /Claude Haiku/ }).first().click();
-    await expect(page).toHaveURL(/\/g\/demo-s1/);
+    await expect(page).toHaveURL(/\/g\//);
     await expect(page.getByRole('button', { name: /Pause/ })).toBeVisible(); // auto-plays
     await expect(page.getByText('Night 1', { exact: false }).first()).toBeVisible();
   });

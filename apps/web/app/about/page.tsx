@@ -81,9 +81,8 @@ export default function AboutPage() {
           which models lie best and which catch liars, with honest statistics.
         </p>
         <Architecture />
-        <div id="methodology">
-          <Markdown source={methodology()} />
-        </div>
+        {/* the doc's "# Methodology" heading provides the #methodology anchor */}
+        <Markdown source={methodology()} />
       </main>
     </>
   );
