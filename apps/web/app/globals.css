@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* ── Design tokens (BRD §10.1): dark-first group chat × neon game show ── */
+@theme {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0b0a12;          /* page */
+  --color-panel: #141220;        /* cards, rails */
+  --color-panel-2: #1c1930;      /* raised */
+  --color-line: #2b2742;         /* borders */
+  --color-fg: #f3f1ff;           /* text */
+  --color-muted: #a7a2c3;        /* secondary text — 7.9:1 on ink */
+  --color-faint: #6f6a8c;        /* tertiary, decorative only */
+
+  --color-neon-pink: #ff4fa3;
+  --color-neon-cyan: #38e1ff;
+  --color-neon-lime: #b6ff4a;
+  --color-neon-amber: #ffc94a;
+
+  /* roles */
+  --color-mafia: #ff5470;
+  --color-detective: #4fc3ff;
+  --color-doctor: #5dffa8;
+  --color-villager: #cfc9ef;
+
+  /* phases */
+  --color-night: #0a1033;
+  --color-day: #241708;
+
+  --radius-bubble: 1.25rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Night dims the whole stage to deep blue; day warms it (BRD §10.1). */
+.stage {
+  transition: background-color 900ms ease;
+}
+.stage[data-phase="night"] {
+  background-color: color-mix(in oklab, var(--color-night) 85%, var(--color-ink));
+}
+.stage[data-phase="day"],
+.stage[data-phase="vote"] {
+  background-color: color-mix(in oklab, var(--color-day) 55%, var(--color-ink));
+}
+.stage[data-phase="setup"],
+.stage[data-phase="end"] {
+  background-color: var(--color-ink);
+}
+
+/* Thought spoiler: blurred until revealed */
+.spoiler {
+  filter: blur(6px);
+  transition: filter 200ms ease;
+  user-select: none;
+}
+.spoiler[data-revealed="true"] {
+  filter: none;
+  user-select: text;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-neon-cyan);
+  outline-offset: 2px;
+}
