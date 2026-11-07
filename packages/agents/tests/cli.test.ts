@@ -24,6 +24,6 @@ test('CLI: mixed providers per seat (dry run) prints a cost/token report and sav
 test('CLI: refuses to start without the needed API keys', () => {
   const env = { ...process.env, ANTHROPIC_API_KEY: '', OPENAI_API_KEY: '', OPENROUTER_API_KEY: '' };
   assert.throws(() => run(['--agents', 'claude-haiku,gpt-nano,random,random,random,random'], env), (e: { stderr: string }) =>
-    /missing ANTHROPIC_API_KEY, OPENAI_API_KEY/.test(e.stderr),
+    /missing ANTHROPIC_API_KEY, OPENROUTER_API_KEY/.test(e.stderr),
   );
 });

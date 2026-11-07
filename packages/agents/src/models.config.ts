@@ -26,8 +26,8 @@ export const MODELS: ModelSpec[] = [
   { id: 'claude-sonnet', provider: 'anthropic', model: 'claude-sonnet-5-5', displayName: 'Claude Sonnet 5.5', pricing: { inputPerMTok: 2, outputPerMTok: 10 }, maxOutputTokens: 4000, enabled: true, webAllowed: false, toolChoice: 'auto', effort: 'low' },
   { id: 'claude-opus', provider: 'anthropic', model: 'claude-opus-5-5', displayName: 'Claude Opus 5.5', pricing: { inputPerMTok: 4, outputPerMTok: 20 }, maxOutputTokens: 4000, enabled: true, webAllowed: false, toolChoice: 'auto', effort: 'low' },
   // OpenAI direct
-  { id: 'gpt-mini', provider: 'openai', model: 'gpt-5.4-mini', displayName: 'GPT-5.4 mini', pricing: { inputPerMTok: 0.75, outputPerMTok: 4.5 }, maxOutputTokens: 2000, enabled: true, webAllowed: false },
-  { id: 'gpt-nano', provider: 'openai', model: 'gpt-5.4-nano', displayName: 'GPT-5.4 nano', pricing: { inputPerMTok: 0.2, outputPerMTok: 1.25 }, maxOutputTokens: 2000, enabled: true, webAllowed: true },
+  { id: 'gpt-mini', provider: 'openrouter', model: 'openai/gpt-5.4-mini', displayName: 'GPT-5.4 mini', pricing: { inputPerMTok: 0.75, outputPerMTok: 4.5 }, maxOutputTokens: 2000, enabled: true, webAllowed: false },
+  { id: 'gpt-nano', provider: 'openrouter', model: 'openai/gpt-5.4-nano', displayName: 'GPT-5.4 nano', pricing: { inputPerMTok: 0.2, outputPerMTok: 1.25 }, maxOutputTokens: 2000, enabled: true, webAllowed: true },
   // Open / other models via OpenRouter
   { id: 'llama-70b', provider: 'openrouter', model: 'meta-llama/llama-3.3-70b-instruct', displayName: 'Llama 3.3 70B', pricing: { inputPerMTok: 0.59, outputPerMTok: 0.79 }, maxOutputTokens: 800, enabled: true, webAllowed: true },
   { id: 'deepseek-v3', provider: 'openrouter', model: 'deepseek/deepseek-chat-v3.1', displayName: 'DeepSeek V3.1', pricing: { inputPerMTok: 0.25, outputPerMTok: 0.95 }, maxOutputTokens: 800, enabled: true, webAllowed: true },
