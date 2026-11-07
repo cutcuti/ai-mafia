@@ -208,3 +208,22 @@ test('M8 share cards: public info only — no hidden roles, models or awards bef
   assert.equal(await ogMoment(store, 'done', 99999), null);
   assert.equal(await ogGame(store, 'nope'), null);
 });
+
+test('M8 landing: featured replay prefers a judged game, public lines only, stops before the reveal', async () => {
+  const { featuredReplay } = await import('../lib/featured');
+  const { fixtureHighlights } = await import('../lib/fixture-store');
+  const store = new FixtureStore();
+  const a = await makeGame('newer', 6, { finishedAt: '2026-11-06T03:00:00.000Z' });
+  const b = await makeGame('judged', 7, { finishedAt: '2026-11-06T02:00:00.000Z' });
+  store.add(a.game, a.events);
+  store.add(b.game, b.events, fixtureHighlights(b.game, b.events));
+  const f = (await featuredReplay(store, {}))!;
+  assert.equal(f.gameId, 'judged');
+  const publicSeqs = new Set(b.events.filter((e) => e.visibility.kind === 'public').map((e) => e.seq));
+  assert.ok(f.lines.every((l) => publicSeqs.has(l.seq)));
+  const over = b.events.find((e) => e.type === 'game_over')!.seq;
+  assert.ok(f.lines.every((l) => l.seq < over));
+  assert.ok(!JSON.stringify(f).includes('SECRET THOUGHT'));
+  assert.equal((await featuredReplay(store, { FEATURED_GAME_ID: 'newer' }))!.gameId, 'newer');
+  assert.equal(await featuredReplay(new FixtureStore(), {}), null);
+});

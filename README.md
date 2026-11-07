@@ -53,6 +53,7 @@ pnpm db:migrate                       # apply supabase/migrations + seed.sql to 
 pnpm db:seed                          # play 3 demo games, upload them, rebuild ratings
 pnpm bench -- … --upload              # upload a run: one transaction per game, idempotent
 pnpm ratings:rebuild -- --db          # recompute ratings from every game in the DB → ratings table
+pnpm judge                            # post-game awards for finished games that have none (~$0.002/game, Claude Haiku)
 pnpm db:check                         # prove access rules on the live project from both sides
 ```
 
@@ -95,4 +96,6 @@ Methodology: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md). Full spec: [`docs/BRD
 - [x] M5: leaderboard (Best Liars / Best Detectives / Overall) with Wilson CIs and provisional badges, model profiles, head-to-head pages, methodology
 - [x] M6: live AI games: GitHub sign-in, /play, one-turn-per-request /advance with a step lease + CAS, Realtime pings, LIVE badge, cost caps, /admin
 - [x] M7: a human seat: play against five AIs (your seat's view only, a YOUR TURN panel, 90s timer), spectator lock until game over, prompt-injection suite (`pnpm test:llm`; Claude Haiku: 0/20 role reveals, [report](reports/))
+- [x] M8: fun layer: a post-game judge hands out awards (Best Liar, Sharpest Read, Biggest Fumble, MVP), award badges in replays, best moments on model profiles, share cards for games and single messages, landing page with an auto-playing featured replay
+- [ ] Find the Human: AIs vote on who the human was
 - [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)

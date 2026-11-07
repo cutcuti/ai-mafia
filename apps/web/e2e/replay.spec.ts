@@ -8,7 +8,8 @@ test.describe('replay viewer', () => {
   test('home lists the game and opens the viewer, which plays', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Recent games' })).toBeVisible();
-    await page.getByRole('link', { name: /Claude Haiku/ }).first().click();
+    await expect(page.getByRole('link', { name: /Watch the whole game/ })).toBeVisible(); // M8 featured replay
+    await page.getByRole('region', { name: 'Recent games' }).getByRole('link', { name: /Claude Haiku/ }).first().click();
     await expect(page).toHaveURL(/\/g\//);
     await expect(page.getByRole('button', { name: /Pause/ })).toBeVisible(); // auto-plays
     await expect(page.getByText('Night 1', { exact: false }).first()).toBeVisible();

@@ -10,8 +10,8 @@ const NAV = [
 export function SiteHeader({ active }: { active?: string }) {
   return (
     <header className="border-b border-line/60">
-      <nav className="mx-auto flex max-w-5xl items-center gap-1 px-4 py-3 sm:px-6" aria-label="Main">
-        <Link href="/" className="mr-3 font-display text-lg font-extrabold tracking-tight">
+      <nav className="mx-auto flex max-w-5xl items-center gap-0.5 overflow-x-auto px-4 py-3 sm:gap-1 sm:px-6" aria-label="Main">
+        <Link href="/" className="mr-1 shrink-0 font-display text-lg font-extrabold tracking-tight sm:mr-3">
           AI <span className="text-neon-pink">Mafia</span>
         </Link>
         {NAV.map((n) => (
@@ -19,12 +19,12 @@ export function SiteHeader({ active }: { active?: string }) {
             key={n.href}
             href={n.href}
             aria-current={active === n.href ? 'page' : undefined}
-            className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${active === n.href ? 'bg-panel-2 text-fg' : 'text-muted hover:text-fg'}`}
+            className={`shrink-0 rounded-full px-2 py-1.5 text-sm sm:px-3 font-semibold transition-colors ${active === n.href ? 'bg-panel-2 text-fg' : 'text-muted hover:text-fg'}`}
           >
             {n.label}
           </Link>
         ))}
-        <a href="https://github.com/cutcuti/ai-mafia" className="ml-auto text-sm text-muted hover:text-fg" rel="noopener noreferrer">
+        <a href="https://github.com/cutcuti/ai-mafia" className="ml-auto hidden text-sm text-muted hover:text-fg sm:inline" rel="noopener noreferrer">
           GitHub ↗
         </a>
       </nav>
