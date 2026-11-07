@@ -107,7 +107,7 @@ export function YourTurn({ req, seats, onSubmit }: { req: InputRequest; seats: M
                 }}
                 className="min-w-0 flex-1 resize-none rounded-xl border border-line bg-ink px-3 py-2"
               />
-              <button type="submit" disabled={busy || !text.trim()} className="self-end rounded-full bg-neon-cyan px-4 py-2 font-semibold text-ink disabled:opacity-50">
+              <button type="submit" disabled={busy || !text.trim()} className="btn btn-go self-end">
                 Send
               </button>
             </div>

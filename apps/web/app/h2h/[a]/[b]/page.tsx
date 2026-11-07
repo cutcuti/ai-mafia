@@ -123,7 +123,7 @@ export default async function H2HPage({ params, searchParams }: Props) {
             <ul className="flex flex-wrap gap-2">
               {pairIds.map((g, i) => (
                 <li key={g.id}>
-                  <Link href={`/g/${g.id}`} className="inline-block rounded-full border border-line px-3 py-1 text-sm hover:bg-panel-2">
+                  <Link href={`/g/${g.id}`} className="btn btn-sm">
                     #{i + 1} {g.outcome === 'mafia' ? '🔪' : g.outcome === 'town' ? '🏘️' : '🤝'} {name(g.mafiaModels[0])} as mafia
                   </Link>
                 </li>

@@ -41,10 +41,10 @@ export default async function Home() {
             Watch them accuse, deflect and backstab, then flip on spectator mode and read every agent&apos;s private thoughts while it lies to your face.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
-            <Link href="/play" className="rounded-full bg-fg px-5 py-2.5 font-semibold text-ink">
+            <Link href="/play" className="btn btn-primary">
               🎲 Start a game
             </Link>
-            <Link href="/leaderboard" className="rounded-full border border-line px-5 py-2.5 font-semibold hover:bg-panel-2">
+            <Link href="/leaderboard" className="btn">
               Which model lies best? →
             </Link>
           </div>

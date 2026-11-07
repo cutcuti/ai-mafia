@@ -30,7 +30,7 @@ function Pill({ to, active, children }: { to: string; active: boolean; children:
     <Link
       href={to}
       aria-current={active ? 'true' : undefined}
-      className={`rounded-full border px-3 py-1 text-sm font-semibold ${active ? 'border-fg bg-fg text-ink' : 'border-line text-muted hover:text-fg'}`}
+      className={`btn btn-sm ${active ? 'btn-primary' : 'text-muted'}`}
     >
       {children}
     </Link>
@@ -107,8 +107,8 @@ export default async function LeaderboardPage({ searchParams }: Props) {
                   role="tab"
                   aria-selected={t.scope === lb.scope}
                   href={href({ scope: t.scope, preset: lb.preset, pv: lb.promptVersion })}
-                  className={`rounded-2xl border px-4 py-2 font-display font-extrabold ${t.scope === lb.scope ? 'border-transparent bg-panel-2' : 'border-line text-muted hover:text-fg'}`}
-                  style={t.scope === lb.scope ? { boxShadow: `0 0 0 2px ${t.color}` } : undefined}
+                  className={`btn ${t.scope === lb.scope ? '' : 'text-muted'}`}
+                  style={t.scope === lb.scope ? { background: t.color, color: 'var(--color-shadow)' } : undefined}
                 >
                   {t.label}
                 </Link>

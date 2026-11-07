@@ -71,7 +71,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
       if (!p) return null;
       return (
         <div className="sticky top-0 z-10 flex justify-center py-3" role="separator">
-          <span className="rounded-full border border-line bg-panel/90 px-4 py-1 font-display text-sm font-semibold backdrop-blur">
+          <span className="pixel-box border-[3px] border-line bg-panel px-4 py-1.5 font-display text-sm">
             {p.icon} {p.label(e.day)}
           </span>
         </div>
@@ -108,7 +108,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
               </button>
             </div>
             <div
-              className={`inline-block rounded-[var(--radius-bubble)] rounded-tl-md px-4 py-2.5 leading-relaxed ${night ? 'border border-mafia/40 bg-mafia/10' : 'bg-panel-2'}`}
+              className={`bubble inline-block border-2 px-3.5 py-2 text-[15.5px] leading-[1.45] ${night ? 'border-mafia/70 bg-[#3a1730]' : 'border-line bg-panel-2'}`}
             >
               {e.text}
               {typeof accused === 'string' && (

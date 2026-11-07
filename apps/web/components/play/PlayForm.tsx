@@ -81,7 +81,7 @@ export function PlayForm({ models, gamesLeft }: { models: { id: string; displayN
       </label>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={busy || picked.length === 0 || gamesLeft <= 0} className="rounded-full bg-neon-cyan px-6 py-2.5 font-semibold text-ink disabled:opacity-50">
+        <button type="submit" disabled={busy || picked.length === 0 || gamesLeft <= 0} className="btn btn-go">
           {busy ? 'Starting…' : 'Start live game →'}
         </button>
         <span className="text-sm text-muted">{gamesLeft > 0 ? `${gamesLeft} left today` : 'Daily limit reached'}</span>

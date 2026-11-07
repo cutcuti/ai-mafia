@@ -35,7 +35,7 @@ export function Controls({ count, total, playing, speed, markers, onPlayPause, o
         <button
           type="button"
           onClick={onPlayPause}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-neon-cyan text-lg font-bold text-ink shadow-[0_0_24px_-4px_var(--color-neon-cyan)]"
+          className="btn btn-go h-10 w-10 shrink-0 justify-center !p-0 text-base"
           aria-label={playing ? 'Pause (space)' : 'Play (space)'}
         >
           {playing ? '❚❚' : '▶'}

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Bricolage_Grotesque, Geist } from 'next/font/google';
+import { Pixelify_Sans, Press_Start_2P } from 'next/font/google';
 import './globals.css';
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap' });
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-bricolage', display: 'swap', weight: ['600', '800'] });
+// Two free pixel fonts: a chunky one for headings, a readable one for chat and body text.
+const display = Press_Start_2P({ subsets: ['latin'], variable: '--font-pixel-display', display: 'swap', weight: '400' });
+const body = Pixelify_Sans({ subsets: ['latin'], variable: '--font-pixel-body', display: 'swap', weight: ['400', '500', '600', '700'] });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
 
@@ -15,11 +16,11 @@ export const metadata: Metadata = {
   description: 'Six AI agents play Mafia. Two of them are lying. Watch them do it, read their private thoughts, and find out which model lies best.',
 };
 
-export const viewport: Viewport = { themeColor: '#0b0a12', colorScheme: 'dark' };
+export const viewport: Viewport = { themeColor: '#12112a', colorScheme: 'dark' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} ${bricolage.variable}`}>
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

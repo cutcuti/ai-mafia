@@ -1,34 +1,44 @@
 @import "tailwindcss";
 
-/* ── Design tokens (BRD §10.1): dark-first group chat × neon game show ── */
+/* ── Design tokens: 8-bit arcade. Hard edges, a small fixed palette, offset shadows, no blur or glow. ── */
 @theme {
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-bricolage), var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-pixel-body), ui-monospace, monospace;
+  --font-display: var(--font-pixel-display), var(--font-pixel-body), ui-monospace, monospace;
 
-  --color-ink: #0b0a12;          /* page */
-  --color-panel: #141220;        /* cards, rails */
-  --color-panel-2: #1c1930;      /* raised */
-  --color-line: #2b2742;         /* borders */
-  --color-fg: #f3f1ff;           /* text */
-  --color-muted: #a7a2c3;        /* secondary text — 7.9:1 on ink */
-  --color-faint: #6f6a8c;        /* tertiary, decorative only */
+  --color-ink: #12112a;          /* page: deep CRT navy */
+  --color-panel: #1e1c44;        /* cards, rails */
+  --color-panel-2: #2b2860;      /* raised */
+  --color-line: #514c9a;         /* 3px borders */
+  --color-shadow: #07061a;       /* offset drop shadows */
+  --color-fg: #fff3d6;           /* warm cream text */
+  --color-muted: #bdb5e3;        /* secondary text */
+  --color-faint: #827cb8;        /* tertiary, decorative */
 
-  --color-neon-pink: #ff4fa3;
-  --color-neon-cyan: #38e1ff;
-  --color-neon-lime: #b6ff4a;
-  --color-neon-amber: #ffc94a;
+  --color-neon-pink: #ff6fa8;    /* coin / primary action */
+  --color-neon-cyan: #63e6f0;
+  --color-neon-lime: #a8ea5f;
+  --color-neon-amber: #ffd04f;
 
   /* roles */
-  --color-mafia: #ff5470;
-  --color-detective: #4fc3ff;
-  --color-doctor: #5dffa8;
-  --color-villager: #cfc9ef;
+  --color-mafia: #ff5a5a;
+  --color-detective: #5fb8ff;
+  --color-doctor: #71e594;
+  --color-villager: #e9dfc2;
 
   /* phases */
-  --color-night: #0a1033;
-  --color-day: #241708;
+  --color-night: #0b1240;
+  --color-day: #3a2410;
 
-  --radius-bubble: 1.25rem;
+  /* everything is square */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+  --radius-bubble: 0px;
 }
 
 :root {
@@ -43,7 +53,101 @@ body {
 
 body {
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
+  font-size: 1.0625rem;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+  /* faint dot grid, like a game board */
+  background-image: radial-gradient(color-mix(in oklab, var(--color-line) 35%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* CRT scanlines over everything (decorative, never intercepts input) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px);
+  mix-blend-mode: multiply;
+}
+
+/* no pill or rounded shapes anywhere: pixels are square */
+.rounded-full,
+[class*="rounded-"] {
+  border-radius: 0 !important;
+}
+
+/* Pixel display font is tall and wide: keep it small, tracked and uppercase */
+.font-display {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+h1.font-display,
+.text-5xl.font-display,
+.text-6xl.font-display {
+  line-height: 1.25;
+}
+
+/* Bordered cards get a chunky offset shadow and thicker edges */
+.border.bg-panel,
+.border.bg-panel-2,
+.pixel-box {
+  border-width: 3px;
+  box-shadow: 5px 5px 0 0 var(--color-shadow);
+}
+
+/* Buttons: press-down arcade keys */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 3px solid var(--color-shadow);
+  padding: 0.6rem 1.1rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  background: var(--color-panel-2);
+  color: var(--color-fg);
+  box-shadow: inset -3px -3px 0 0 rgb(0 0 0 / 0.35), inset 3px 3px 0 0 rgb(255 255 255 / 0.18), 4px 4px 0 0 var(--color-shadow);
+  transition: transform 60ms steps(1), box-shadow 60ms steps(1);
+  cursor: pointer;
+}
+.btn:hover {
+  filter: brightness(1.12);
+}
+.btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: inset -3px -3px 0 0 rgb(0 0 0 / 0.35), inset 3px 3px 0 0 rgb(255 255 255 / 0.18), 0 0 0 0 var(--color-shadow);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--color-neon-pink);
+  color: var(--color-shadow);
+}
+.btn-go {
+  background: var(--color-neon-lime);
+  color: var(--color-shadow);
+}
+.btn-sm {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.6rem;
+}
+
+/* blinking "insert coin" cursor */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.blink {
+  animation: blink 1s steps(1) infinite;
 }
 
 /* Night dims the whole stage to deep blue; day warms it (BRD §10.1). */
@@ -64,8 +168,8 @@ body {
 
 /* Thought spoiler: blurred until revealed */
 .spoiler {
-  filter: blur(6px);
-  transition: filter 200ms ease;
+  filter: blur(5px);
+  transition: filter 120ms steps(3);
   user-select: none;
 }
 .spoiler[data-revealed="true"] {
@@ -85,6 +189,83 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-neon-cyan);
-  outline-offset: 2px;
+  outline: 3px dashed var(--color-neon-amber);
+  outline-offset: 3px;
+}
+
+/* Press Start 2P has one weight and is very wide: no faux bold, and scaled-down sizes */
+.font-display {
+  font-weight: 400 !important;
+}
+.font-display.text-6xl,
+.font-display.text-5xl {
+  font-size: clamp(1.6rem, 4.6vw, 2.6rem);
+}
+.font-display.text-4xl {
+  font-size: clamp(1.4rem, 3.6vw, 2rem);
+}
+.font-display.text-3xl {
+  font-size: 1.35rem;
+}
+.font-display.text-2xl {
+  font-size: 1.05rem;
+}
+.font-display.text-xl {
+  font-size: 0.9rem;
+}
+.font-display.text-lg {
+  font-size: 0.8rem;
+}
+.font-display.text-sm,
+.font-display.text-base {
+  font-size: 0.68rem;
+}
+
+/* flat pixels: no glass blur */
+[class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* chat bubble: hard drop shadow */
+.bubble {
+  position: relative;
+  box-shadow: 4px 4px 0 0 var(--color-shadow);
+}
+/* headings get a hard 1-pixel-step shadow, like old title screens */
+h1.font-display,
+h2.font-display {
+  text-shadow: 3px 3px 0 var(--color-shadow);
+}
+
+/* pixel slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  background: var(--color-shadow);
+  border: 2px solid var(--color-line);
+  accent-color: var(--color-neon-cyan);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 22px;
+  background: var(--color-neon-amber);
+  border: 3px solid var(--color-shadow);
+  border-radius: 0;
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 22px;
+  background: var(--color-neon-amber);
+  border: 3px solid var(--color-shadow);
+  border-radius: 0;
+}
+
+/* pixel fonts have no italics; slanting them looks broken */
+.italic,
+blockquote {
+  font-style: normal !important;
 }

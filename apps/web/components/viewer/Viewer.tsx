@@ -347,13 +347,16 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
 
   return (
     <div className="stage flex h-dvh flex-col" data-phase={state.phase}>
-      <header className="flex items-center gap-3 border-b border-line/60 px-4 py-3 sm:px-6">
-        <a href="/" className="font-display text-lg font-extrabold tracking-tight">
-          AI <span className="text-neon-pink">Mafia</span>
+      <header className="flex items-center gap-3 border-b-[3px] border-shadow bg-panel px-4 py-3 sm:px-6">
+        <a href="/" className="flex items-center gap-2 font-display text-lg">
+          <span aria-hidden className="grid h-6 w-6 place-items-center border-2 border-shadow bg-neon-pink text-[0.7rem] text-[var(--color-shadow)]">♦</span>
+          <span className="hidden sm:inline">
+            AI <span className="text-neon-pink">Mafia</span>
+          </span>
         </a>
         {liveStatus === 'running' && (
           <span className="flex items-center gap-1.5 rounded-full bg-mafia/15 px-2.5 py-1 text-xs font-extrabold tracking-wider text-mafia" aria-label="Live game">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-mafia" aria-hidden />
+            <span className="blink h-2 w-2 bg-mafia" aria-hidden />
             LIVE
           </span>
         )}
@@ -362,7 +365,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
         </span>
         <div className="ml-auto flex items-center gap-3">
           {state.outcome && (
-            <button type="button" onClick={() => setShowEnd(true)} className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold text-muted hover:text-fg" aria-label="Results">
+            <button type="button" onClick={() => setShowEnd(true)} className="btn btn-sm" aria-label="Results">
               🏁<span className="hidden sm:inline"> Results</span>
             </button>
           )}

@@ -208,7 +208,7 @@ export function EndScreen({
               void navigator.clipboard?.writeText(shareUrl);
               setCopied(true);
             }}
-            className="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-ink"
+            className="btn btn-primary"
           >
             {copied ? "✓ Link copied" : "🔗 Copy link"}
           </button>
@@ -216,14 +216,14 @@ export function EndScreen({
             href={`https://x.com/intent/post?text=${encodeURIComponent(tweet)}&url=${encodeURIComponent(shareUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-panel-2"
+            className="btn"
           >
             Share on X
           </a>
           <button
             type="button"
             onClick={onReplay}
-            className="rounded-full border border-line px-4 py-2 text-sm font-semibold hover:bg-panel-2"
+            className="btn"
           >
             ↺ Watch again
           </button>

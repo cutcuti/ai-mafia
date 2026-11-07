@@ -44,11 +44,11 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
 
   return (
     <div className="relative mx-auto w-full max-w-[360px]" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
-      <div className="rounded-[2.6rem] border border-line bg-panel p-2.5 shadow-[0_30px_80px_-20px_rgba(255,79,163,0.35)]">
-        <div className="overflow-hidden rounded-[2.1rem] bg-ink">
+      <div className="pixel-box border-[3px] border-shadow bg-panel-2 p-3 pb-9">
+        <div className="overflow-hidden border-[3px] border-shadow bg-ink">
           <div className="flex items-center justify-between border-b border-line/60 px-4 py-3 text-xs">
             <span className="flex items-center gap-1.5 font-semibold">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-mafia" aria-hidden /> Replay
+              <span className="blink h-2 w-2 bg-mafia" aria-hidden /> <span className="font-display text-[0.6rem]">Replay</span>
             </span>
             <span className="truncate pl-3 text-muted">{title}</span>
           </div>
@@ -85,7 +85,7 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
                       <div className="text-[11px] font-semibold" style={{ color: s ? seatColor(s.seatId) : undefined }}>
                         {s?.name ?? '?'}
                       </div>
-                      <div className="rounded-2xl rounded-tl-md bg-panel-2 px-3 py-1.5 text-[13px] leading-snug">{l.text}</div>
+                      <div className="border-2 border-line bg-panel-2 px-2.5 py-1 text-[14px] leading-snug">{l.text}</div>
                     </div>
                   </motion.div>
                 );
@@ -100,10 +100,11 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
             )}
           </div>
         </div>
+        <p className="mt-2 text-center font-display text-[0.55rem] tracking-[0.3em] text-faint">AI·MAFIA</p>
       </div>
       <Link
         href={`/g/${gameId}`}
-        className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-neon-pink px-5 py-2.5 text-sm font-semibold text-ink shadow-lg"
+        className="btn btn-primary absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap"
       >
         ▶ Watch the whole game
       </Link>

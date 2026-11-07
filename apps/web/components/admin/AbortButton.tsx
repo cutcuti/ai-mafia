@@ -16,7 +16,7 @@ export function AbortButton({ id }: { id: string }) {
         await fetch(`/api/admin/games/${id}/abort`, { method: 'POST' });
         router.refresh();
       }}
-      className="rounded-full border border-mafia/60 px-3 py-1 text-sm font-semibold text-mafia hover:bg-mafia/10 disabled:opacity-50"
+      className="btn btn-sm text-mafia"
     >
       {busy ? 'Stopping…' : 'Abort'}
     </button>

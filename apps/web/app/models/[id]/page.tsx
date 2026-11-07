@@ -138,7 +138,7 @@ export default async function ModelPage({ params, searchParams }: Props) {
             </h2>
             <div className="flex flex-wrap gap-2">
               {opponents.map((o) => (
-                <Link key={o} href={`/h2h/${encodeURIComponent(id)}/${encodeURIComponent(o)}?preset=${preset}`} className="rounded-full border border-line px-3 py-1.5 text-sm font-semibold hover:bg-panel-2">
+                <Link key={o} href={`/h2h/${encodeURIComponent(id)}/${encodeURIComponent(o)}?preset=${preset}`} className="btn btn-sm">
                   vs {snap.models.find((m) => m.id === o)?.displayName ?? modelName(o)}
                 </Link>
               ))}

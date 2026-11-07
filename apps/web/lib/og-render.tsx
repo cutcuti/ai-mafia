@@ -3,7 +3,7 @@ import { seatColor } from './theme';
 import type { OgGame, OgMoment } from './og';
 
 const SIZE = { width: 1200, height: 630 };
-const C = { ink: '#0b0a12', panel: '#1c1930', fg: '#f4f1ff', muted: '#a49fbf', mafia: '#ff5470', town: '#4fc3ff', pink: '#ff4fa3', amber: '#ffd166' };
+const C = { ink: '#12112a', panel: '#2b2860', fg: '#fff3d6', muted: '#bdb5e3', mafia: '#ff5a5a', town: '#5fb8ff', pink: '#ff6fa8', amber: '#ffd04f' };
 const AWARD: Record<string, string> = { best_liar: '🤥 Best Liar', sharpest_read: '🔍 Sharpest Read', biggest_fumble: '🤦 Biggest Fumble', mvp: '🏆 MVP' };
 const cache = { 'cache-control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800' };
 
