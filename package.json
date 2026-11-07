@@ -19,7 +19,8 @@
     "db:check": "tsx --env-file-if-exists=.env packages/bench/src/check.ts",
     "web:dev": "pnpm --filter @ai-mafia/web dev",
     "web:build": "pnpm --filter @ai-mafia/web build",
-    "e2e": "pnpm --filter @ai-mafia/web e2e"
+    "e2e": "pnpm --filter @ai-mafia/web e2e",
+    "test:llm": "node --env-file-if-exists=.env --import tsx --test packages/agents/tests-llm/*.test.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

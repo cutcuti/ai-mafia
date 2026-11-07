@@ -94,5 +94,5 @@ Methodology: [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md). Full spec: [`docs/BRD
 - [x] M4: Next.js replay viewer: chat stream, playback + scrubber, spectator mode (thoughts, roles, night channel, lie markers), vote tracker + graph, role reveals, end screen, mobile layout, Playwright smoke tests
 - [x] M5: leaderboard (Best Liars / Best Detectives / Overall) with Wilson CIs and provisional badges, model profiles, head-to-head pages, methodology
 - [x] M6: live AI games: GitHub sign-in, /play, one-turn-per-request /advance with a step lease + CAS, Realtime pings, LIVE badge, cost caps, /admin
-- [ ] M7: a human seat: you vs. five AIs
+- [x] M7: a human seat: play against five AIs (your seat's view only, a YOUR TURN panel, 90s timer), spectator lock until game over, prompt-injection suite (`pnpm test:llm`; Claude Haiku: 0/20 role reveals, [report](reports/))
 - [ ] Native Google (Gemini) adapter (Gemini runs via OpenRouter today)

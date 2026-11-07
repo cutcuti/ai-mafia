@@ -1,6 +1,7 @@
 node_modules/
 /games/
-/reports/
+/reports/*
+!/reports/injection-*.md
 .env
 *.tsbuildinfo
 /ratings.json
