@@ -95,7 +95,7 @@ export function EndScreen({ outcome, seats, roles, alive, shareUrl, spectator, o
 
         {!spectator && (
           <button type="button" onClick={onSpectator} className="mt-5 w-full rounded-2xl border border-neon-pink/60 bg-neon-pink/10 px-4 py-3 text-left font-semibold text-neon-pink">
-            👁️ Rewatch with spectator mode — see what they were really thinking
+            👁️ Rewatch with spectator mode: see what they were really thinking (about you, too)
           </button>
         )}
 

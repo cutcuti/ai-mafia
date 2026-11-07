@@ -32,5 +32,10 @@ test.describe('human seat (offline: mocked AIs)', () => {
     }
     expect(moves).toBeGreaterThan(0);
     await expect(end).toBeVisible();
+
+    // post-game: the lock lifts — the player can rewatch with every thought
+    await end.getByRole('button', { name: /Rewatch with spectator mode/ }).click();
+    await expect(page.getByRole('switch', { name: /Spectator/ })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('button', { name: 'Reveal private thought' }).first()).toBeVisible({ timeout: 20_000 });
   });
 });

@@ -57,6 +57,8 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
   const [waiting, setWaiting] = useState<WaitingOn>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
   const [yourTurn, setYourTurn] = useState<InputRequest | null>(null);
+  // I8: spectator data is locked while a human plays; it opens the moment the game is over (the player's full replay)
+  const spectatorOpen = meta.spectatorAvailable || liveStatus === 'finished';
 
   // ── spectator mode: thoughts + hidden events, fetched from the server only when allowed (I3, I8) ──
   const [spectator, setSpectator] = useState(false);
@@ -345,9 +347,9 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
             type="button"
             role="switch"
             aria-checked={spectator}
-            disabled={!meta.spectatorAvailable || specLoading}
+            disabled={!spectatorOpen || specLoading}
             onClick={() => void switchView(!spectator)}
-            title={meta.spectatorAvailable ? 'See every private thought, role and night action' : 'Unlocks when this game ends'}
+            title={spectatorOpen ? 'See every private thought, role and night action' : 'Unlocks when this game ends'}
             className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
               spectator ? 'border-neon-pink bg-neon-pink/15 text-neon-pink' : 'border-line text-muted hover:text-fg'
             }`}
