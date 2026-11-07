@@ -1,7 +1,20 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent } from '@ai-mafia/engine';
 import type { LeaderboardSnapshot, PairGame } from './leaderboard';
-import { modelsOf, pairGameOf, type GameStore, type ListQuery, type StoredGame } from './types';
+import type { Highlight } from '@ai-mafia/agents';
+import { modelsOf, pairGameOf, type GameStore, type ListQuery, type ModelMoment, type StoredGame } from './types';
+
+const HL_COLS = 'game_id, rank, seq, kind, title, blurb, seat_id, seat_name, model_id, quote';
+const toHighlight = (r: Record<string, unknown>): Highlight => ({
+  kind: r.kind as Highlight['kind'],
+  seatId: String(r.seat_id ?? ''),
+  seq: r.seq == null ? null : Number(r.seq),
+  title: String(r.title),
+  blurb: String(r.blurb),
+  seatName: String(r.seat_name ?? '?'),
+  modelId: (r.model_id as string) ?? null,
+  quote: (r.quote as string) ?? null,
+});
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const GAME_COLS = 'id, external_id, mode, format, run_id, preset, prompt_version, status, outcome, has_human, cost_usd, created_at, finished_at, config';
@@ -157,6 +170,26 @@ export class SupabaseStore implements GameStore {
       if (!data || data.length < 1000) break;
     }
     return out;
+  }
+
+  async getHighlights(id: string) {
+    if (!UUID.test(id)) return [];
+    const { data, error } = await this.db.from('highlights').select(HL_COLS).eq('game_id', id).order('rank');
+    if (error) throw new Error(`highlights: ${error.message}`);
+    return (data ?? []).map(toHighlight);
+  }
+
+  async modelMoments(modelId: string, limit: number): Promise<ModelMoment[]> {
+    const { data, error } = await this.db
+      .from('highlights')
+      .select(`${HL_COLS}, games!inner(status, finished_at)`)
+      .eq('model_id', modelId)
+      .eq('games.status', 'finished')
+      .not('seq', 'is', null)
+      .order('finished_at', { referencedTable: 'games', ascending: false })
+      .limit(limit);
+    if (error) throw new Error(`model moments: ${error.message}`);
+    return (data ?? []).map((r) => ({ ...toHighlight(r), gameId: String(r.game_id) }));
   }
 
   async getEvents(id: string) {

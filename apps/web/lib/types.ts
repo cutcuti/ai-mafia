@@ -1,5 +1,9 @@
 import type { Controller, GameConfig, GameEvent, Outcome, Role } from '@ai-mafia/engine';
+import type { Highlight } from '@ai-mafia/agents';
 import type { LeaderboardSnapshot, PairGame } from './leaderboard';
+
+/** A judged moment on a model's profile. */
+export type ModelMoment = Highlight & { gameId: string };
 
 export interface StoredSeat {
   seatId: string;
@@ -58,6 +62,10 @@ export interface GameStore {
   getLeaderboard(): Promise<LeaderboardSnapshot>;
   /** Finished games reduced to which models held the mafia / town seats (for head-to-head pages). */
   listPairGames(): Promise<PairGame[]>;
+  /** Post-game awards (hidden info: callers must only expose them for finished games — see views.highlightsFor). */
+  getHighlights(id: string): Promise<Highlight[]>;
+  /** Latest awards won by a model across finished games. */
+  modelMoments(modelId: string, limit: number): Promise<ModelMoment[]>;
 }
 
 /** Finished game → mafia / town model lists (roles of a finished game are public). */

@@ -1,5 +1,5 @@
 import { buildLeaderboard, h2hSummary, modelProfile } from './leaderboard';
-import { authorizeView, cacheControl, eventsForViewer, gameMeta, type Caller } from './views';
+import { authorizeView, cacheControl, eventsForViewer, gameMeta, type Caller, highlightsFor } from './views';
 
 /** Aggregates over finished games change only on rebuild: cache at the edge, revalidate in the background. */
 const PUBLIC_AGGREGATE = 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600';
@@ -55,6 +55,15 @@ export async function gameResponse(store: GameStore, id: string, url: URL, calle
   const d = authorizeView(g, url.searchParams.get('view'), caller);
   if (!d.ok) return error(d.status, d.error);
   return json(gameMeta(g, d.viewer), 200, { 'cache-control': cacheControl(g, d.view) });
+}
+
+/** GET /api/games/:id/highlights — judged awards; empty until the game is finished (they name the mafia). */
+export async function highlightsResponse(store: GameStore, id: string): Promise<Response> {
+  const g = await store.getGame(id);
+  if (!g) return error(404, 'game not found');
+  const highlights = highlightsFor(g, await store.getHighlights(id));
+  // finished + judged: cache; otherwise the judge may still be running
+  return json({ highlights }, 200, { 'cache-control': highlights.length ? cacheControl(g, 'public') : 'private, no-store' });
 }
 
 /** GET /api/games/:id/events?view=&after= — filtered server-side (I3). */

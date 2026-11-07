@@ -1,4 +1,6 @@
-import { createModelController, dryRunProvider } from '@ai-mafia/agents';
+import { after } from 'next/server';
+import { createModelController, defaultProvider, dryRunProvider, getModel } from '@ai-mafia/agents';
+import { dryRunJudge, judgeFinishedGame, modelJudge } from '@/lib/live/judge';
 import { clientIp, getSessionUser } from '@/lib/auth';
 import { fixtureMode } from '@/lib/devmode';
 import { advanceResponse } from '@/lib/live/advance';
@@ -32,6 +34,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
           ...(mocked() ? { makeProvider: (spec) => dryRunProvider(spec, Math.floor(Math.random() * 1e9)) } : {}),
         }),
       notify: mocked() ? undefined : realtimeNotifier(),
+      // post-game awards: one cheap Haiku call, after the response is sent (BRD §10.6)
+      onFinished: (gameId, state) =>
+        after(() => judgeFinishedGame(getLiveStore(), gameId, state, mocked() ? dryRunJudge : modelJudge(defaultProvider(getModel('claude-haiku')), getModel('claude-haiku')))),
     },
     id,
     new URL(req.url),

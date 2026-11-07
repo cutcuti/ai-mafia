@@ -168,3 +168,38 @@ test('views, errors and rate limits', async () => {
   for (let i = 0; i < 62; i++) codes.push((await advanceResponse(fdeps, fid, new URL('http://x'), {}, 'one-ip')).status);
   assert.ok(codes.includes(429));
 });
+
+test('M8: the step that finishes the game triggers the judge once; awards are hidden until the end', async () => {
+  const { judgeFinishedGame, dryRunJudge } = await import('../lib/live/judge');
+  const { highlightsResponse } = await import('../lib/api');
+  const { LiveAwareStore } = await import('../lib/live-aware-store');
+  const { FixtureStore } = await import('../lib/fixture-store');
+  const store = new MemoryLiveStore();
+  const id = await newGame(store);
+  const games = new LiveAwareStore(new FixtureStore(), store);
+  const finished: string[] = [];
+  const judged: Promise<number>[] = [];
+  const deps: AdvanceDeps = {
+    store,
+    limits,
+    makeResponder: randomModel().make,
+    onFinished: (gid, state) => {
+      finished.push(gid);
+      judged.push(judgeFinishedGame(store, gid, state, dryRunJudge));
+    },
+  };
+  for (let i = 0; i < 400; i++) {
+    const before = await (await highlightsResponse(games, id)).json();
+    assert.deepEqual(before.highlights, [], 'no awards while running');
+    const r = await post(deps, id);
+    if (r.body.status === 'finished') break;
+  }
+  await post(deps, id); // a later call on a finished game must not re-judge
+  assert.deepEqual(finished, [id]);
+  assert.ok((await judged[0]) > 0);
+  const after = await (await highlightsResponse(games, id)).json();
+  assert.ok(after.highlights.length > 0);
+  assert.ok(after.highlights.every((h: { seatName: string }) => h.seatName !== '?'));
+  // a failing judge never throws
+  assert.equal(await judgeFinishedGame(store, id, (await store.loadLive(id))!.state, async () => { throw new Error('down'); }), 0);
+});

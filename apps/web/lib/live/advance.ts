@@ -14,6 +14,8 @@ export interface AdvanceDeps {
   notify?: (gameId: string, seq: number) => Promise<void>;
   /** How long one caller may hold the step (must exceed the model call's worst case). */
   leaseMs?: number;
+  /** Called once, by the request whose step finished the game (e.g. to run the post-game judge). */
+  onFinished?: (id: string, state: GameState) => void;
 }
 
 /**
@@ -123,5 +125,6 @@ export async function advanceResponse(deps: AdvanceDeps, id: string, url: URL, c
     return reply(latest?.state ?? g.state, 'busy');
   }
   if (newEvents.length) await deps.notify?.(id, newEvents.at(-1)!.seq).catch(() => {});
+  if (next.status === 'finished') deps.onFinished?.(id, next);
   return reply(next, next.status === 'finished' ? 'finished' : 'running', { version: g.version + 1, stepped: true });
 }

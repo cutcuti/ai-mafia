@@ -29,6 +29,7 @@ const RPCS: Record<string, Record<string, unknown>> = {
   abort_game: { p_id: '00000000-0000-0000-0000-000000000000' },
   take_token: { p_key: 'x', p_capacity: 1, p_refill_per_sec: 1 },
   live_spend_today: {},
+  save_highlights: { p_game: '00000000-0000-0000-0000-000000000000', p: [] },
 };
 let failures = 0;
 const line = (ok: boolean, msg: string) => {

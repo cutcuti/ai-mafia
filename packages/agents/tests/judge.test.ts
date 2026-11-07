@@ -57,3 +57,16 @@ test('judgeGame: one call, costed; failures mean no awards, never a throw', asyn
   assert.deepEqual(boom.awards, []);
   assert.equal(boom.error, 'down');
 });
+
+test('dry-run judge + highlight rows: deterministic, valid, denormalised', async () => {
+  const { events, seats } = await finished();
+  const { dryRunAwards, toHighlights, highlightRow } = await import('../src/judge.ts');
+  const a = dryRunAwards(events, seats);
+  assert.ok(a.length > 0);
+  assert.deepEqual(dryRunAwards(events, seats), a);
+  const raw = { awards: a.map((x) => ({ kind: x.kind, player: seats.find((s) => s.id === x.seatId)!.name, seq: x.seq, title: x.title, blurb: x.blurb })) };
+  assert.equal(validateAwards(raw, events, seats).length, a.length, 'dry-run awards pass validation');
+  const h = toHighlights(a, events, seats.map((s) => ({ ...s, modelId: 'random' })));
+  assert.equal(h[0].quote, events.find((e) => e.seq === a[0].seq)!.text.slice(0, 280));
+  assert.equal(highlightRow(h[0]).judge_version, 'j1');
+});

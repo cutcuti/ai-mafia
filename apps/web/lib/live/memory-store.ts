@@ -1,3 +1,4 @@
+import type { Highlight } from '@ai-mafia/agents';
 import type { LiveGame, LiveStore, StepCommit } from './types';
 
 /** In-memory LiveStore with the same semantics as the SQL functions (lease, CAS, buckets). Tests and local demos. */
@@ -5,6 +6,7 @@ export class MemoryLiveStore implements LiveStore {
   readonly games = new Map<string, LiveGame & { leaseUntil: number }>();
   readonly buckets = new Map<string, { tokens: number; at: number }>();
   spent = 0;
+  readonly highlights = new Map<string, Highlight[]>();
   private seq = 0;
   constructor(private readonly clock: () => number = Date.now) {}
 
@@ -62,6 +64,13 @@ export class MemoryLiveStore implements LiveStore {
   }
   async listActive(limit: number) {
     return [...this.games.values()].filter((g) => g.status === 'running').slice(0, limit);
+  }
+  async saveHighlights(id: string, h: Highlight[]) {
+    if (this.games.get(id)?.status !== 'finished') throw new Error(`game ${id} is not finished`);
+    this.highlights.set(id, [...h]);
+  }
+  highlightsOf(id: string): Highlight[] {
+    return [...(this.highlights.get(id) ?? [])];
   }
   async recentFallbacks(limit: number) {
     return [...this.games.values()]

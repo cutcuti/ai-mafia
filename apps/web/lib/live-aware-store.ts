@@ -26,4 +26,10 @@ export class LiveAwareStore implements GameStore {
   listPairGames() {
     return this.base.listPairGames();
   }
+  async getHighlights(id: string) {
+    return (await this.live.loadLive(id)) ? this.live.highlightsOf(id) : this.base.getHighlights(id);
+  }
+  modelMoments(modelId: string, limit: number) {
+    return this.base.modelMoments(modelId, limit);
+  }
 }

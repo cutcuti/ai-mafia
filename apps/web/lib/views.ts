@@ -90,6 +90,11 @@ export function gameMeta(g: StoredGame, viewer: Viewer): GameMeta {
   };
 }
 
+/** Awards name the mafia, so they exist for viewers only once the game is over (I3). */
+export function highlightsFor<T>(g: Pick<StoredGame, 'status'>, list: readonly T[]): T[] {
+  return g.status === 'finished' ? [...list] : [];
+}
+
 /** Finished games never change, so their filtered views are cacheable at the edge; anything live is not. */
 export function cacheControl(g: Pick<StoredGame, 'status'>, view: ViewName): string {
   if (g.status === 'finished' && view !== 'seat') return 'public, max-age=60, s-maxage=86400, stale-while-revalidate=604800';

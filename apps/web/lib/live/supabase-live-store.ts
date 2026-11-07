@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { GameEvent, GameState } from '@ai-mafia/engine';
-import { PROMPT_VERSION } from '@ai-mafia/agents';
+import { highlightRow, PROMPT_VERSION, type Highlight } from '@ai-mafia/agents';
 import type { LiveGame, LiveStore, StepCommit } from './types';
 
 const eventRow = (e: GameEvent) => ({
@@ -105,6 +105,10 @@ export class SupabaseLiveStore implements LiveStore {
         })),
       },
     });
+  }
+
+  async saveHighlights(id: string, h: Highlight[]) {
+    await this.rpc<number>('save_highlights', { p_game: id, p: h.map(highlightRow) });
   }
 
   abort(id: string) {

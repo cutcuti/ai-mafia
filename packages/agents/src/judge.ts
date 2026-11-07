@@ -141,3 +141,52 @@ export async function judgeGame(
     return { awards: [], costUsd: 0, error: (e as Error).message };
   }
 }
+
+/** An award as stored and shown: denormalised with the seat's name, model and the quoted moment. */
+export interface Highlight extends Award {
+  seatName: string;
+  modelId: string | null;
+  quote: string | null;
+}
+
+export function toHighlights(
+  awards: readonly Award[],
+  events: readonly GameEvent[],
+  seats: readonly (JudgeSeat & { modelId: string | null })[],
+): Highlight[] {
+  return awards.map((a) => {
+    const seat = seats.find((s) => s.id === a.seatId);
+    const e = a.seq === null ? undefined : events.find((x) => x.seq === a.seq);
+    return { ...a, seatName: seat?.name ?? '?', modelId: seat?.modelId ?? null, quote: e ? e.text.slice(0, 280) : null };
+  });
+}
+
+/** The row shape save_highlights() takes. */
+export const highlightRow = (h: Highlight) => ({
+  kind: h.kind,
+  seq: h.seq,
+  title: h.title,
+  blurb: h.blurb,
+  seat_id: h.seatId,
+  seat_name: h.seatName,
+  model_id: h.modelId,
+  quote: h.quote,
+  judge_version: JUDGE_VERSION,
+});
+
+/**
+ * Offline judge for dry runs / e2e (no API call): deterministic awards from simple facts of the game.
+ * Not shown as real judging — only used when MAFIA_DRY_RUN is on.
+ */
+export function dryRunAwards(events: readonly GameEvent[], seats: readonly JudgeSeat[]): Award[] {
+  const role = (id?: string) => seats.find((s) => s.id === id)?.role;
+  const nameOf = (id?: string) => seats.find((s) => s.id === id)?.name ?? '?';
+  const out: Award[] = [];
+  const lie = events.find((e) => e.type === 'speech' && role(e.actorSeatId) === 'mafia');
+  if (lie) out.push({ kind: 'best_liar', seatId: lie.actorSeatId!, seq: lie.seq, title: 'Straight-faced liar', blurb: `${nameOf(lie.actorSeatId)} said this with zero shame.` });
+  const read = events.find((e) => e.type === 'vote' && role(e.actorSeatId) !== 'mafia' && role(e.targetSeatId) === 'mafia');
+  if (read) out.push({ kind: 'sharpest_read', seatId: read.actorSeatId!, seq: read.seq, title: 'Saw right through it', blurb: `${nameOf(read.actorSeatId)} voted for actual mafia.` });
+  const fumble = events.find((e) => e.type === 'vote' && role(e.actorSeatId) !== 'mafia' && role(e.targetSeatId) !== 'mafia');
+  if (fumble) out.push({ kind: 'biggest_fumble', seatId: fumble.actorSeatId!, seq: fumble.seq, title: 'Friendly fire', blurb: `${nameOf(fumble.actorSeatId)} voted out their own side.` });
+  return out;
+}

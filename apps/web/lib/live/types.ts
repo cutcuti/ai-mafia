@@ -1,5 +1,5 @@
 import type { GameEvent, GameState } from '@ai-mafia/engine';
-import type { AgentCall } from '@ai-mafia/agents';
+import type { AgentCall, Highlight } from '@ai-mafia/agents';
 
 /** A signed-in user, as far as the server is concerned. */
 export interface SessionUser {
@@ -44,6 +44,8 @@ export interface LiveStore {
   listActive(limit: number): Promise<LiveGame[]>;
   /** Most recent engine fallbacks across games (admin only — contains raw model output). */
   recentFallbacks(limit: number): Promise<FallbackRow[]>;
+  /** Store a finished game's judged awards (replaces any). */
+  saveHighlights(id: string, highlights: Highlight[]): Promise<void>;
 }
 
 export interface FallbackRow {

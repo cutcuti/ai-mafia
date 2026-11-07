@@ -1,9 +1,10 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { GameConfig, GameEvent, Outcome, Role } from '@ai-mafia/engine';
+import { dryRunAwards, toHighlights, type Highlight } from '@ai-mafia/agents';
 import type { LeaderboardSnapshot, PairGame } from './leaderboard';
 import { modelName } from './roster';
-import { modelsOf, pairGameOf, type GameStore, type ListQuery, type StoredGame } from './types';
+import { modelsOf, pairGameOf, type GameStore, type ListQuery, type ModelMoment, type StoredGame } from './types';
 
 /** The bench's on-disk GameRecord (schema 1) — just the fields we read. */
 interface RecordFile {
@@ -17,6 +18,8 @@ interface RecordFile {
   outcome: Outcome;
   seats: { id: string; name: string; role: Role; modelId: string; personaId?: string }[];
   events: GameEvent[];
+  /** Judged awards, if the record has them; otherwise fixtures get offline (dry-run) awards. */
+  highlights?: Highlight[];
   costUsd: number;
   startedAt: string;
   finishedAt: string;
@@ -49,12 +52,17 @@ function toStored(r: RecordFile): StoredGame {
   };
 }
 
+export function fixtureHighlights(g: StoredGame, events: GameEvent[]): Highlight[] {
+  const seats = g.seats.map((s) => ({ id: s.seatId, name: s.name, role: s.role, modelId: s.controller.kind === 'model' ? s.controller.modelId : s.controller.kind }));
+  return toHighlights(dryRunAwards(events, seats), events, seats);
+}
+
 /**
  * In-memory store over bench GameRecords. Used by tests and Playwright, and for local dev without Supabase
  * (MAFIA_FIXTURE_DIR=../../games). Games may also be added directly (tests use this for live/human cases).
  */
 export class FixtureStore implements GameStore {
-  private readonly games = new Map<string, { game: StoredGame; events: GameEvent[] }>();
+  private readonly games = new Map<string, { game: StoredGame; events: GameEvent[]; highlights: Highlight[] }>();
 
   static fromDir(dir: string): FixtureStore {
     const store = new FixtureStore();
@@ -82,11 +90,24 @@ export class FixtureStore implements GameStore {
   }
 
   addRecord(r: RecordFile) {
-    this.games.set(r.gameId, { game: toStored(r), events: r.events });
+    const game = toStored(r);
+    this.games.set(r.gameId, { game, events: r.events, highlights: r.highlights ?? fixtureHighlights(game, r.events) });
   }
 
-  add(game: StoredGame, events: GameEvent[]) {
-    this.games.set(game.id, { game, events });
+  add(game: StoredGame, events: GameEvent[], highlights: Highlight[] = []) {
+    this.games.set(game.id, { game, events, highlights });
+  }
+
+  async getHighlights(id: string) {
+    return [...(this.games.get(id)?.highlights ?? [])];
+  }
+
+  async modelMoments(modelId: string, limit: number): Promise<ModelMoment[]> {
+    return [...this.games.values()]
+      .filter((x) => x.game.status === 'finished')
+      .sort((a, b) => ((a.game.finishedAt ?? '') < (b.game.finishedAt ?? '') ? 1 : -1))
+      .flatMap((x) => x.highlights.filter((h) => h.modelId === modelId && h.seq !== null).map((h) => ({ ...h, gameId: x.game.id })))
+      .slice(0, limit);
   }
 
   async listGames(q: ListQuery) {
