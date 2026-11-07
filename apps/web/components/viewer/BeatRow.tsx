@@ -1,6 +1,8 @@
 'use client';
 
 import { Avatar } from '@/components/Avatar';
+import type { Highlight } from '@ai-mafia/agents';
+import { AwardBadge } from '@/components/Awards';
 import type { RosterSeat } from '@/lib/roster';
 import { ROLE_META, seatColor } from '@/lib/theme';
 import type { Beat } from '@/lib/timeline';
@@ -23,6 +25,8 @@ export interface BeatRowProps {
   onRevealThought: () => void;
   lie: boolean;
   onShare: () => void;
+  /** Judge's award for this moment (only passed once the game's end is on screen — awards are spoilers). */
+  award?: Highlight;
 }
 
 function Who({ id, seats }: { id?: string; seats: Map<string, RosterSeat> }) {
@@ -54,7 +58,7 @@ function Thought({ text, revealed, onReveal }: { text: string; revealed: boolean
   );
 }
 
-export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealThought, lie, onShare }: BeatRowProps) {
+export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealThought, lie, onShare, award }: BeatRowProps) {
   const e = beat.event;
   const actor = e.actorSeatId ? seats.get(e.actorSeatId) : undefined;
 
@@ -93,6 +97,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
                   🤥
                 </span>
               )}
+              {award && <AwardBadge award={award} />}
               <button
                 type="button"
                 onClick={onShare}
@@ -141,6 +146,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
         <div className="py-0.5 pl-12 text-sm">
           <span className="text-muted">🗳️ </span>
           <Who id={e.actorSeatId} seats={seats} /> <span className="text-muted">votes</span> <Who id={e.targetSeatId} seats={seats} />
+          {award && <span className="ml-2"><AwardBadge award={award} /></span>}
           {showThought && beat.thought && <Thought text={beat.thought.text} revealed={thoughtRevealed} onReveal={onRevealThought} />}
         </div>
       );

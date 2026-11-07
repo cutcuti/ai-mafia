@@ -4,7 +4,7 @@ import { Viewer } from '@/components/viewer/Viewer';
 import { modelName } from '@/lib/roster';
 import { getSessionUser } from '@/lib/auth';
 import { getStore } from '@/lib/store';
-import { authorizeView, eventsForViewer, gameMeta } from '@/lib/views';
+import { authorizeView, eventsForViewer, gameMeta, highlightsFor } from '@/lib/views';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,8 @@ async function load(id: string) {
   const seat = user ? authorizeView(game, 'seat', { userId: user.id }) : null;
   const d = seat?.ok ? seat : authorizeView(game, 'public', {});
   if (!d.ok) return null;
-  return { meta: gameMeta(game, d.viewer), events: eventsForViewer(await store.getEvents(id), d.viewer), baseView: d.view === 'seat' ? ('seat' as const) : ('public' as const) };
+  const [events, highlights] = await Promise.all([store.getEvents(id), game.status === 'finished' ? store.getHighlights(id) : []]);
+  return { meta: gameMeta(game, d.viewer), events: eventsForViewer(events, d.viewer), highlights: highlightsFor(game, highlights), baseView: d.view === 'seat' ? ('seat' as const) : ('public' as const) };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -34,5 +35,5 @@ export default async function GamePage({ params, searchParams }: Props) {
   const data = await load((await params).id);
   if (!data) notFound();
   const t = Number((await searchParams).t);
-  return <Viewer meta={data.meta} events={data.events} baseView={data.baseView} initialSeq={Number.isInteger(t) && t >= 0 ? t : undefined} />;
+  return <Viewer meta={data.meta} events={data.events} baseView={data.baseView} highlights={data.highlights} initialSeq={Number.isInteger(t) && t >= 0 ? t : undefined} />;
 }

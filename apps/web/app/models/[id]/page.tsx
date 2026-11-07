@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { AwardCard } from '@/components/Awards';
 import { CiBar } from '@/components/CiBar';
 import { SiteHeader } from '@/components/SiteHeader';
 import { StatCard } from '@/components/StatCard';
@@ -37,7 +38,7 @@ export default async function ModelPage({ params, searchParams }: Props) {
   const st = profile.stats.find((s) => s.preset === preset && s.promptVersion === pv)?.stats;
   const ratings = profile.ratings.filter((r) => r.preset === preset && r.promptVersion === pv);
   const opponents = [...new Set(snap.ratings.filter((r) => r.preset === preset && r.promptVersion === pv && r.modelId !== id).map((r) => r.modelId))];
-  const { games: recent } = await store.listGames({ limit: 8, model: id });
+  const [{ games: recent }, moments] = await Promise.all([store.listGames({ limit: 8, model: id }), store.modelMoments(id, 6)]);
   const provisional = !st || st.mafiaGames < MIN_GAMES_PER_ROLE || st.townGames < MIN_GAMES_PER_ROLE;
 
   return (
@@ -142,6 +143,21 @@ export default async function ModelPage({ params, searchParams }: Props) {
                 </Link>
               ))}
             </div>
+          </section>
+        )}
+
+        {moments.length > 0 && (
+          <section aria-labelledby="moments" className="mt-8">
+            <h2 id="moments" className="mb-3 font-display text-2xl font-extrabold">
+              Best moments
+            </h2>
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {moments.map((m) => (
+                <li key={`${m.gameId}-${m.kind}`}>
+                  <AwardCard award={m} href={`/g/${m.gameId}?t=${m.seq}`} />
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

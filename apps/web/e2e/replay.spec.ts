@@ -36,6 +36,7 @@ test.describe('replay viewer', () => {
     await slider.focus();
     await page.keyboard.press('End');
     await expect(page.getByRole('dialog', { name: /wins|Draw/ })).toBeVisible();
+    await expect(page.getByRole('dialog').getByRole('heading', { name: 'The awards' })).toBeVisible(); // M8 judge awards
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
 

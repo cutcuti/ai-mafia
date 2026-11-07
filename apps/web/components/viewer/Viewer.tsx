@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Highlight } from '@ai-mafia/agents';
 import type { GameEvent, InputRequest } from '@ai-mafia/engine';
 import { modelName, rosterFrom } from '@/lib/roster';
 import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timelineMarkers, stateAt } from '@/lib/timeline';
@@ -20,6 +21,8 @@ export interface ViewerProps {
   initialSeq?: number;
   /** 'seat' when the viewer is this game's human player (their own seat's view, server-filtered). */
   baseView?: 'public' | 'seat';
+  /** Judge's awards (finished games only; empty while the judge runs). */
+  highlights?: Highlight[];
 }
 
 const SPECTATOR_PREF = 'ai-mafia:spectator';
@@ -48,7 +51,7 @@ const appendNew = (have: GameEvent[], incoming: GameEvent[]) => {
   return add.length ? [...have, ...add] : have;
 };
 
-export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'public' }: ViewerProps) {
+export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'public', highlights: initialHighlights = [] }: ViewerProps) {
   // ── live games (BRD §9.4): this browser drives /advance while it's watching and caught up ──
   const startsLive = meta.status === 'running' || meta.status === 'awaiting_input';
   const [liveStatus, setLiveStatus] = useState<string>(meta.status);
@@ -59,6 +62,32 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
   const [yourTurn, setYourTurn] = useState<InputRequest | null>(null);
   // I8: spectator data is locked while a human plays; it opens the moment the game is over (the player's full replay)
   const spectatorOpen = meta.spectatorAvailable || liveStatus === 'finished';
+
+  // Awards: shipped with finished games; a live game's are judged after its last step, so fetch them a few times.
+  const [highlights, setHighlights] = useState<Highlight[]>(initialHighlights);
+  const [awardsGaveUp, setAwardsGaveUp] = useState(false);
+  useEffect(() => {
+    if (liveStatus !== 'finished' || highlights.length) return;
+    let tries = 0;
+    let stop = false;
+    const load = async () => {
+      if (stop) return;
+      if (tries++ >= 6) return setAwardsGaveUp(true);
+      try {
+        const r = await fetch(`/api/games/${meta.id}/highlights`);
+        const body = r.ok ? ((await r.json()) as { highlights: Highlight[] }) : null;
+        if (!stop && body?.highlights.length) return setHighlights(body.highlights);
+      } catch {
+        // offline: just no awards
+      }
+      if (!stop) setTimeout(load, 2500);
+    };
+    void load();
+    return () => {
+      stop = true;
+    };
+  }, [liveStatus, highlights.length, meta.id]);
+  const awardBySeq = useMemo(() => new Map(highlights.filter((h) => h.seq !== null).map((h) => [h.seq!, h])), [highlights]);
 
   // ── spectator mode: thoughts + hidden events, fetched from the server only when allowed (I3, I8) ──
   const [spectator, setSpectator] = useState(false);
@@ -403,6 +432,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
                 }
                 lie={spectator && isLikelyLie(b, trueRoles)}
                 onShare={() => share(b.event.seq)}
+                award={state.outcome ? awardBySeq.get(b.event.seq) : undefined}
               />
             ))}
             {live && caughtUp && !yourTurn && (
@@ -452,6 +482,9 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
           alive={state.alive}
           shareUrl={typeof window === 'undefined' ? `/g/${meta.id}` : `${window.location.origin}/g/${meta.id}`}
           spectator={spectator}
+          awards={highlights}
+          awardsPending={!highlights.length && !awardsGaveUp}
+          gameId={meta.id}
           onClose={() => setShowEnd(false)}
           onReplay={() => {
             setShowEnd(false);
