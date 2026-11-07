@@ -363,6 +363,8 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
 
   const shown = beats.slice(0, count);
 
+  const lastPhaseSeq = shown.findLast((b) => b.kind === 'phase')?.event.seq;
+
   return (
     <div className="stage flex h-dvh flex-col" data-phase={state.phase}>
       <header className="flex items-center gap-3 border-b-[3px] border-shadow bg-panel px-4 py-3 sm:px-6">
@@ -455,6 +457,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
                 lie={spectator && isLikelyLie(b, trueRoles)}
                 onShare={() => share(b.event.seq)}
                 award={state.outcome ? awardBySeq.get(b.event.seq) : undefined}
+                stickyPhase={b.event.seq === lastPhaseSeq}
               />
             ))}
             {live && caughtUp && !yourTurn && (

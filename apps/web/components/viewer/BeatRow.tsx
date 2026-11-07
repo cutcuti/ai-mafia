@@ -27,6 +27,8 @@ export interface BeatRowProps {
   onShare: () => void;
   /** Judge's award for this moment (only passed once the game's end is on screen — awards are spoilers). */
   award?: Highlight;
+  /** Only the latest phase banner sticks to the top; earlier ones scroll away (they'd pile up otherwise). */
+  stickyPhase?: boolean;
 }
 
 function Who({ id, seats }: { id?: string; seats: Map<string, RosterSeat> }) {
@@ -58,7 +60,7 @@ function Thought({ text, revealed, onReveal }: { text: string; revealed: boolean
   );
 }
 
-export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealThought, lie, onShare, award }: BeatRowProps) {
+export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealThought, lie, onShare, award, stickyPhase = false }: BeatRowProps) {
   const e = beat.event;
   const actor = e.actorSeatId ? seats.get(e.actorSeatId) : undefined;
 
@@ -70,7 +72,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
       const p = PHASE_LABEL[(e.payload?.phase as Phase) ?? e.phase];
       if (!p) return null;
       return (
-        <div className="sticky top-0 z-10 flex justify-center py-3" role="separator">
+        <div className={`${stickyPhase ? 'sticky top-0 z-10' : ''} flex justify-center py-3`} role="separator">
           <span className="pixel-box border-[3px] border-line bg-panel px-4 py-1.5 font-display text-sm">
             {p.icon} {p.label(e.day)}
           </span>
