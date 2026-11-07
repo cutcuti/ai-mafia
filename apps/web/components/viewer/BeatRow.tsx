@@ -108,7 +108,7 @@ export function BeatRow({ beat, seats, showThought, thoughtRevealed, onRevealTho
               </button>
             </div>
             <div
-              className={`bubble inline-block border-2 px-3.5 py-2 text-[15.5px] leading-[1.45] ${night ? 'border-mafia/70 bg-[#3a1730]' : 'border-line bg-panel-2'}`}
+              className={`bubble inline-block border-2 px-3.5 py-2 text-[15.5px] leading-[1.45] ${night ? 'border-mafia bg-[color-mix(in_oklab,var(--color-mafia)_14%,var(--color-panel))]' : 'border-line bg-panel-2'}`}
             >
               {e.text}
               {typeof accused === 'string' && (

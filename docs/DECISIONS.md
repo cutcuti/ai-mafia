@@ -55,3 +55,4 @@ One line each: date — decision — reason.
 2026-11-07 — Post-game judge reads the full spectator log (thoughts included) — it runs only after the game is finished and its output goes to no player prompt, so I1/spectator rule holds.
 2026-11-07 — Live-game judge runs in next/server after() and its ~$0.002 Haiku cost isn't added to the daily spend meter — keeps the step response fast; cost is negligible next to the $2/day cap. Bench games are judged by `pnpm judge` backfill.
 2026-11-07 — UI restyled as an original 8-bit arcade theme (Press Start 2P + Pixelify Sans via next/font, square edges, offset shadows, pixel-sprite avatars) — user asked for a polished retro look; fonts load through next/font, so no new dependency.
+2026-11-07 — Light 'paper' theme is the default, dark (neutral charcoal) is opt-in via a header toggle saved in localStorage — user found the purple dark theme unnatural and asked for light.

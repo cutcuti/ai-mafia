@@ -6,6 +6,7 @@ import type { GameEvent, InputRequest } from '@ai-mafia/engine';
 import { modelName, rosterFrom } from '@/lib/roster';
 import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timelineMarkers, stateAt } from '@/lib/timeline';
 import type { GameMeta } from '@/lib/views';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { BeatRow } from './BeatRow';
 import { Controls, type Speed } from './Controls';
 import { EndScreen } from './EndScreen';
@@ -364,6 +365,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
           {meta.models.map(modelName).join(' vs ')} · {meta.preset}
         </span>
         <div className="ml-auto flex items-center gap-3">
+          <ThemeToggle />
           {state.outcome && (
             <button type="button" onClick={() => setShowEnd(true)} className="btn btn-sm" aria-label="Results">
               🏁<span className="hidden sm:inline"> Results</span>

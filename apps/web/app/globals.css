@@ -5,29 +5,30 @@
   --font-sans: var(--font-pixel-body), ui-monospace, monospace;
   --font-display: var(--font-pixel-display), var(--font-pixel-body), ui-monospace, monospace;
 
-  --color-ink: #12112a;          /* page: deep CRT navy */
-  --color-panel: #1e1c44;        /* cards, rails */
-  --color-panel-2: #2b2860;      /* raised */
-  --color-line: #514c9a;         /* 3px borders */
-  --color-shadow: #07061a;       /* offset drop shadows */
-  --color-fg: #fff3d6;           /* warm cream text */
-  --color-muted: #bdb5e3;        /* secondary text */
-  --color-faint: #827cb8;        /* tertiary, decorative */
+  /* LIGHT (default): warm paper, ink outlines, like a printed game manual */
+  --color-ink: #f3ecdc;          /* page: paper */
+  --color-panel: #fffaf0;        /* cards, rails */
+  --color-panel-2: #ebe2cd;      /* raised / bubbles */
+  --color-line: #3b342c;         /* outlines */
+  --color-shadow: #2b251e;       /* offset drop shadows */
+  --color-fg: #241f1a;           /* text */
+  --color-muted: #5f574c;        /* secondary text — 6.6:1 on paper */
+  --color-faint: #8c8273;        /* tertiary, decorative */
 
-  --color-neon-pink: #ff6fa8;    /* coin / primary action */
-  --color-neon-cyan: #63e6f0;
-  --color-neon-lime: #a8ea5f;
-  --color-neon-amber: #ffd04f;
+  --color-neon-pink: #e8506a;    /* primary action: tomato red */
+  --color-neon-cyan: #2a8c9c;    /* teal */
+  --color-neon-lime: #5aa83a;    /* go green */
+  --color-neon-amber: #b97f12;   /* coin gold, dark enough to read on paper */
 
   /* roles */
-  --color-mafia: #ff5a5a;
-  --color-detective: #5fb8ff;
-  --color-doctor: #71e594;
-  --color-villager: #e9dfc2;
+  --color-mafia: #c8323c;
+  --color-detective: #2468b0;
+  --color-doctor: #2f8a46;
+  --color-villager: #7a6a4f;
 
   /* phases */
-  --color-night: #0b1240;
-  --color-day: #3a2410;
+  --color-night: #d6d9e6;
+  --color-day: #f6e7c8;
 
   /* everything is square */
   --radius-xs: 0px;
@@ -42,7 +43,32 @@
 }
 
 :root {
+  color-scheme: light;
+}
+
+/* DARK: neutral warm charcoal, no purple */
+:root[data-theme="dark"] {
   color-scheme: dark;
+  --color-ink: #171513;
+  --color-panel: #221f1c;
+  --color-panel-2: #2e2a26;
+  --color-line: #4d463f;
+  --color-shadow: #090807;
+  --color-fg: #f2e9d8;
+  --color-muted: #b9ae9c;
+  --color-faint: #7e7567;
+  --color-neon-pink: #f0687a;
+  --color-neon-cyan: #5cc4d1;
+  --color-neon-lime: #8fcf62;
+  --color-neon-amber: #efc04f;
+  --color-mafia: #f0606a;
+  --color-detective: #64aef0;
+  --color-doctor: #6fd18b;
+  --color-villager: #d9ccb0;
+  --color-night: #10141c;
+  --color-day: #2a2016;
+  --scanline: 0.12;
+  --title-shadow: #090807;
 }
 
 html,
@@ -68,7 +94,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px);
+  background: repeating-linear-gradient(to bottom, rgb(0 0 0 / var(--scanline, 0.05)) 0 1px, transparent 1px 3px);
   mix-blend-mode: multiply;
 }
 
@@ -155,11 +181,11 @@ h1.font-display,
   transition: background-color 900ms ease;
 }
 .stage[data-phase="night"] {
-  background-color: color-mix(in oklab, var(--color-night) 85%, var(--color-ink));
+  background-color: color-mix(in oklab, var(--color-night) 80%, var(--color-ink));
 }
 .stage[data-phase="day"],
 .stage[data-phase="vote"] {
-  background-color: color-mix(in oklab, var(--color-day) 55%, var(--color-ink));
+  background-color: color-mix(in oklab, var(--color-day) 60%, var(--color-ink));
 }
 .stage[data-phase="setup"],
 .stage[data-phase="end"] {
@@ -235,7 +261,7 @@ h1.font-display,
 /* headings get a hard 1-pixel-step shadow, like old title screens */
 h1.font-display,
 h2.font-display {
-  text-shadow: 3px 3px 0 var(--color-shadow);
+  text-shadow: 3px 3px 0 var(--title-shadow, #dccfb3);
 }
 
 /* pixel slider */

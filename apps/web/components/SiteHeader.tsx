@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ThemeToggle } from './ThemeToggle';
 
 const NAV = [
   { href: '/', label: 'Games' },
@@ -28,9 +29,12 @@ export function SiteHeader({ active }: { active?: string }) {
             {n.label}
           </Link>
         ))}
-        <a href="https://github.com/cutcuti/ai-mafia" className="ml-auto hidden text-sm text-muted hover:text-fg sm:inline" rel="noopener noreferrer">
+        <a href="https://github.com/cutcuti/ai-mafia" className="ml-auto hidden font-display text-[0.6rem] text-muted hover:text-fg sm:inline" rel="noopener noreferrer">
           GitHub ↗
         </a>
+        <span className="ml-auto pl-2 sm:ml-3">
+          <ThemeToggle />
+        </span>
       </nav>
     </header>
   );

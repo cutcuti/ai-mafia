@@ -1,7 +1,7 @@
 import type { Role } from '@ai-mafia/engine';
 
 /** One colour per seat index (s1..s10). High-chroma, distinguishable on the dark ink background. */
-export const SEAT_COLORS = ['#ff6fa8', '#63e6f0', '#ffd04f', '#a8ea5f', '#b98bff', '#ff9b4f', '#4fe0b8', '#ff7f6e', '#d6f05a', '#8fb4ff'] as const;
+export const SEAT_COLORS = ['#d9467a', '#1f93a8', '#c08a12', '#4a952c', '#8a5cd0', '#dd6a24', '#18a185', '#d1453f', '#7d9418', '#3f78cf'] as const;
 
 export function seatColor(seatId: string): string {
   const i = Number(seatId.replace(/\D/g, '')) - 1;
