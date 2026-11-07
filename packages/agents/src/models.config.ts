@@ -23,7 +23,7 @@ export interface ModelSpec {
 export const MODELS: ModelSpec[] = [
   // Anthropic. Thinking is on by default for all three, so leave room in max tokens; Haiku 5.5's price is the ≤100K-prompt tier.
   { id: 'claude-haiku', provider: 'anthropic', model: 'claude-haiku-5-5', displayName: 'Claude Haiku 5.5', pricing: { inputPerMTok: 0.1, outputPerMTok: 0.5 }, maxOutputTokens: 2000, enabled: true, webAllowed: true, effort: 'low' },
-  { id: 'claude-sonnet', provider: 'anthropic', model: 'claude-sonnet-5-5', displayName: 'Claude Sonnet 5.5', pricing: { inputPerMTok: 2, outputPerMTok: 10 }, maxOutputTokens: 4000, enabled: true, webAllowed: false, toolChoice: 'auto', effort: 'low' },
+  { id: 'claude-sonnet', provider: 'anthropic', model: 'claude-sonnet-5-5', displayName: 'Claude Sonnet 5.5', pricing: { inputPerMTok: 2, outputPerMTok: 10 }, maxOutputTokens: 4000, enabled: true, webAllowed: true, toolChoice: 'auto', effort: 'low' },
   { id: 'claude-opus', provider: 'anthropic', model: 'claude-opus-5-5', displayName: 'Claude Opus 5.5', pricing: { inputPerMTok: 4, outputPerMTok: 20 }, maxOutputTokens: 4000, enabled: true, webAllowed: false, toolChoice: 'auto', effort: 'low' },
   // OpenAI direct
   { id: 'gpt-mini', provider: 'openrouter', model: 'openai/gpt-5.4-mini', displayName: 'GPT-5.4 mini', pricing: { inputPerMTok: 0.75, outputPerMTok: 4.5 }, maxOutputTokens: 2000, enabled: true, webAllowed: false },

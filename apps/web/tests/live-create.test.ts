@@ -85,7 +85,8 @@ test('web models: only cheap, enabled models whose key is configured', () => {
   assert.deepEqual(webModels({}), []);
   const withAnthropic = webModels({ ANTHROPIC_API_KEY: 'x' }).map((m) => m.id);
   assert.ok(withAnthropic.includes('claude-haiku'));
-  assert.ok(!withAnthropic.includes('claude-sonnet') && !withAnthropic.includes('claude-opus'), 'expensive models never web-allowed');
+  assert.ok(withAnthropic.includes('claude-sonnet'), 'Sonnet fits the per-game cap');
+  assert.ok(!withAnthropic.includes('claude-opus'), 'Opus would blow the per-game cap: benchmark only');
 });
 
 test('limits come from env with BRD defaults; junk values fall back', () => {

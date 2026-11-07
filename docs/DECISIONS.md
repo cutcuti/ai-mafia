@@ -58,3 +58,4 @@ One line each: date — decision — reason.
 2026-11-07 — Light 'paper' theme is the default, dark (neutral charcoal) is opt-in via a header toggle saved in localStorage — user found the purple dark theme unnatural and asked for light.
 2026-11-07 — GPT models route through OpenRouter (openai/gpt-5.4-*) — one OPENROUTER_API_KEY unlocks every non-Claude model; model ids (and so ratings history) are unchanged.
 2026-11-07 — Body text uses IBM Plex Mono instead of Pixelify Sans — user found pixel digits illegible (5 read as S); headings keep the pixel font.
+2026-11-07 — Claude Sonnet is web-allowed (≈$0.07 shared table, under the $0.25 game cap); Opus stays benchmark-only (≈$0.40 full table) — user asked for both.
