@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Pixelify_Sans, Press_Start_2P } from 'next/font/google';
+import { IBM_Plex_Mono, Press_Start_2P } from 'next/font/google';
 import { THEME_BOOT } from '@/components/ThemeToggle';
 import './globals.css';
 
-// Two free pixel fonts: a chunky one for headings, a readable one for chat and body text.
+// Chunky pixel font for headings; a clear terminal monospace (unambiguous digits) for everything people read.
 const display = Press_Start_2P({ subsets: ['latin'], variable: '--font-pixel-display', display: 'swap', weight: '400' });
-const body = Pixelify_Sans({ subsets: ['latin'], variable: '--font-pixel-body', display: 'swap', weight: ['400', '500', '600', '700'] });
+const body = IBM_Plex_Mono({ subsets: ['latin'], variable: '--font-pixel-body', display: 'swap', weight: ['400', '500', '600', '700'] });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
 

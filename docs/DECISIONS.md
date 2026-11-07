@@ -57,3 +57,4 @@ One line each: date — decision — reason.
 2026-11-07 — UI restyled as an original 8-bit arcade theme (Press Start 2P + Pixelify Sans via next/font, square edges, offset shadows, pixel-sprite avatars) — user asked for a polished retro look; fonts load through next/font, so no new dependency.
 2026-11-07 — Light 'paper' theme is the default, dark (neutral charcoal) is opt-in via a header toggle saved in localStorage — user found the purple dark theme unnatural and asked for light.
 2026-11-07 — GPT models route through OpenRouter (openai/gpt-5.4-*) — one OPENROUTER_API_KEY unlocks every non-Claude model; model ids (and so ratings history) are unchanged.
+2026-11-07 — Body text uses IBM Plex Mono instead of Pixelify Sans — user found pixel digits illegible (5 read as S); headings keep the pixel font.
