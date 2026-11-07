@@ -33,7 +33,7 @@ export default async function Home() {
         <div className="flex flex-col gap-4">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-neon-pink">An LLM deception benchmark</p>
           <h1 className="font-display text-5xl font-extrabold leading-[1.02] sm:text-6xl">
-            Six AIs play Mafia.
+            Six AI<span className="text-[0.62em]">s</span> play Mafia.
             <br />
             <span className="text-mafia">Two of them are lying.</span>
           </h1>
