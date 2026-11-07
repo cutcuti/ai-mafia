@@ -71,11 +71,11 @@ const TOOL = {
           properties: {
             kind: { type: 'string', enum: [...AWARD_KINDS] },
             player: { type: 'string', description: 'Player name' },
-            seq: { type: ['integer', 'null'], description: 'The [#seq] of the moment' },
+            seq: { type: ['integer', 'null'], description: 'The [#seq] number of the exact moment (an integer, e.g. 30). null only for mvp.' },
             title: { type: 'string' },
             blurb: { type: 'string' },
           },
-          required: ['kind', 'player', 'title', 'blurb'],
+          required: ['kind', 'player', 'seq', 'title', 'blurb'],
         },
       },
     },
@@ -89,13 +89,16 @@ const raw = z.object({
       z.object({
         kind: z.enum(AWARD_KINDS),
         player: z.string(),
-        seq: z.number().int().nullable().optional(),
+        seq: z.union([z.number().int(), z.string()]).nullable().optional(),
         title: z.string().min(1),
         blurb: z.string().min(1),
       }),
     )
     .max(8),
 });
+
+/** Strip log markers like "in [#30]" from text people will read. */
+const tidy = (t: string) => t.replace(/\s*(?:in |at |on )?\[#\d+\]/g, '').replace(/\s+([.,!?])/g, '$1').trim();
 
 /**
  * Validate the judge's output against the actual game (BRD §10.6): known players, existing seqs, one award per kind,
@@ -111,10 +114,13 @@ export function validateAwards(input: unknown, events: readonly GameEvent[], sea
     if (!seat || out.some((x) => x.kind === a.kind)) continue;
     if (a.kind === 'best_liar' && seat.role !== 'mafia') continue;
     if (a.kind === 'sharpest_read' && seat.role === 'mafia') continue;
-    const seq = a.seq ?? null;
+    // models sometimes leave seq out and cite the moment in the blurb ("[#30]") — recover it from there
+    const cited = /\[#(\d+)\]/.exec(`${a.blurb} ${a.title}`)?.[1];
+    const given = typeof a.seq === 'string' ? /\d+/.exec(a.seq)?.[0] : a.seq;
+    const seq = given != null ? Number(given) : cited !== undefined ? Number(cited) : null;
     if (seq !== null && !seqs.has(seq)) continue;
     if (seq === null && a.kind !== 'mvp') continue;
-    out.push({ kind: a.kind, seatId: seat.id, seq, title: a.title.trim().slice(0, 48), blurb: a.blurb.trim().slice(0, 180) });
+    out.push({ kind: a.kind, seatId: seat.id, seq, title: tidy(a.title).slice(0, 48), blurb: tidy(a.blurb).slice(0, 180) });
   }
   return out.sort((x, y) => AWARD_KINDS.indexOf(x.kind) - AWARD_KINDS.indexOf(y.kind));
 }

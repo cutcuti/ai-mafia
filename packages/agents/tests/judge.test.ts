@@ -70,3 +70,21 @@ test('dry-run judge + highlight rows: deterministic, valid, denormalised', async
   assert.equal(h[0].quote, events.find((e) => e.seq === a[0].seq)!.text.slice(0, 280));
   assert.equal(highlightRow(h[0]).judge_version, 'j1');
 });
+
+test('seq missing or stringly typed: recovered from the field or the blurb; markers stripped from text', async () => {
+  const { events, seats } = await finished();
+  const vote = events.find((e) => e.type === 'vote' && seats.find((s) => s.id === e.actorSeatId)?.role !== 'mafia')!;
+  const town = seats.find((s) => s.id === vote.actorSeatId)!;
+  const a = validateAwards(
+    {
+      awards: [
+        { kind: 'sharpest_read', player: town.name, title: 'Called it', blurb: `${town.name} voted right in [#${vote.seq}].` },
+        { kind: 'biggest_fumble', player: town.name, seq: `#${vote.seq}`, title: 'Oops', blurb: 'bad' },
+      ],
+    },
+    events,
+    seats,
+  );
+  assert.deepEqual(a.map((x) => x.seq), [vote.seq, vote.seq]);
+  assert.equal(a[0].blurb, `${town.name} voted right.`);
+});
