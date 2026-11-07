@@ -10,7 +10,7 @@ export class MemoryLiveStore implements LiveStore {
   private seq = 0;
   constructor(private readonly clock: () => number = Date.now) {}
 
-  async createLiveGame(state: LiveGame['state'], createdBy: string) {
+  async createLiveGame(state: LiveGame['state'], createdBy: string | null) {
     const id = `00000000-0000-4000-8000-${String(++this.seq).padStart(12, '0')}`;
     this.games.set(id, { id, state, version: 0, status: 'running', costUsd: 0, mode: 'live', createdBy, createdAt: new Date(this.clock()).toISOString(), leaseUntil: 0 });
     return id;

@@ -14,7 +14,7 @@ export const moderate = (text: string) => !BLOCK.some((re) => re.test(text));
  * current request id (double submits are no-ops). Speech is data, never instructions (I6): it goes through the same
  * engine validation as model output and is escaped when rendered into prompts.
  */
-export async function inputResponse(store: LiveStore, id: string, req: Request, user: SessionUser | null): Promise<Response> {
+export async function inputResponse(store: LiveStore, id: string, req: Request, user: Pick<SessionUser, 'id'> | null): Promise<Response> {
   if (!user) return json({ error: 'sign in first' }, 401);
   if (!(await store.takeToken(`input:user:${user.id}`, 20, 1))) return json({ error: 'Too many requests.' }, 429);
   const g = await store.loadLive(id);

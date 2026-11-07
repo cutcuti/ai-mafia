@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createGameResponse, TIRED, type CreateDeps } from '../lib/live/create';
+import { createGameResponse, GUEST_TIRED, TIRED, type CreateDeps } from '../lib/live/create';
 import { MemoryLiveStore } from '../lib/live/memory-store';
 import { webModels } from '../lib/live/models';
 import { limitsFromEnv, type SessionUser } from '../lib/live/types';
@@ -90,14 +90,64 @@ test('web models: only cheap, enabled models whose key is configured', () => {
 });
 
 test('limits come from env with BRD defaults; junk values fall back', () => {
-  assert.deepEqual(limitsFromEnv({}), { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3, createPerUserPerHour: 5, createPerIpPerHour: 10 });
+  assert.deepEqual(limitsFromEnv({}), { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3, createPerUserPerHour: 5, createPerIpPerHour: 10, guestsEnabled: true, guestGamesPerDay: 2, guestGamesPerIpPerDay: 4, guestDailyBudgetUsd: 1 });
+  assert.equal(limitsFromEnv({ GUEST_PLAY: '0' }).guestsEnabled, false);
   assert.deepEqual(limitsFromEnv({ DAILY_BUDGET_USD: '0.5', MAX_GAME_COST_USD: 'lots', MAX_LIVE_GAMES_PER_USER_PER_DAY: '-1' }), {
     dailyBudgetUsd: 0.5,
     maxGameCostUsd: 0.25,
     maxGamesPerUserPerDay: 3,
     createPerUserPerHour: 5,
     createPerIpPerHour: 10,
+    guestsEnabled: true, guestGamesPerDay: 2, guestGamesPerIpPerDay: 4, guestDailyBudgetUsd: 1,
   });
+});
+
+const GUEST = 'guest-0123456789abcdef0123456789abcdef';
+const guestDeps = (o: Partial<CreateDeps> = {}) =>
+  deps({ limits: { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3, guestsEnabled: true, guestGamesPerDay: 2, guestGamesPerIpPerDay: 4, guestDailyBudgetUsd: 1 }, allowedModels: ['claude-haiku', 'claude-sonnet'], guestModels: ['claude-haiku'], ...o });
+
+test('guest (no login) can start a game with cheap models; it is stored without an auth user', async () => {
+  const d = guestDeps();
+  const res = await createGameResponse(d, req({ models: ['claude-haiku'], humanSeat: true }), null, 'ip', GUEST);
+  assert.equal(res.status, 201);
+  const g = (await d.store.loadLive((await res.json()).id))!;
+  assert.equal(g.createdBy, null, 'games.created_by references auth.users');
+  assert.ok(g.state.seats.some((s) => s.controller.kind === 'human' && s.controller.userId === GUEST), 'the guest owns the human seat');
+});
+
+test('guest: bigger models need sign-in; guest play can be switched off', async () => {
+  const pricey = await createGameResponse(guestDeps(), req({ models: ['claude-haiku', 'claude-sonnet'] }), null, 'ip', GUEST);
+  assert.equal(pricey.status, 403);
+  assert.equal((await pricey.json()).code, 'sign_in_model');
+  const off = guestDeps({ limits: { dailyBudgetUsd: 2, maxGameCostUsd: 0.25, maxGamesPerUserPerDay: 3, guestsEnabled: false } });
+  assert.equal((await createGameResponse(off, req({ models: ['claude-haiku'] }), null, 'ip', GUEST)).status, 401);
+});
+
+test('guest daily caps: per guest id, and per IP so clearing cookies does not reset it', async () => {
+  const d = guestDeps();
+  const go = (id: string, ip: string) => createGameResponse(d, req({ models: ['claude-haiku'] }), null, ip, id).then((r) => r.status);
+  assert.deepEqual([await go(GUEST, 'a'), await go(GUEST, 'b')], [201, 201]);
+  assert.equal(await go(GUEST, 'c'), 429, '2 a day per guest');
+  // new cookie each time from one address: the IP cap (4) still holds
+  const fresh = (n: number) => `guest-${String(n).padStart(32, '0')}`;
+  const fromOneIp = [];
+  for (let i = 1; i <= 5; i++) fromOneIp.push(await go(fresh(i), 'same'));
+  assert.deepEqual(fromOneIp, [201, 201, 201, 201, 429]);
+});
+
+test('guests stop at their share of the daily budget; signed-in users can still play', async () => {
+  const d = guestDeps();
+  d.store.spent = 1;
+  const res = await createGameResponse(d, req({ models: ['claude-haiku'] }), null, 'ip', GUEST);
+  assert.equal(res.status, 429);
+  assert.deepEqual(await res.json(), { error: GUEST_TIRED, code: 'guest_budget' });
+  assert.equal((await createGameResponse(d, req({ models: ['claude-haiku'] }), user, 'ip')).status, 201);
+});
+
+test('guest models: only the cheap ones (Sonnet needs sign-in)', () => {
+  const ids = webModels({ ANTHROPIC_API_KEY: 'x', OPENROUTER_API_KEY: 'y' }, { guest: true }).map((m) => m.id);
+  assert.ok(ids.includes('claude-haiku') && ids.includes('gpt-nano'));
+  assert.ok(!ids.includes('claude-sonnet') && !ids.includes('claude-opus'));
 });
 
 test('post-sign-in redirect only goes to same-site paths', () => {

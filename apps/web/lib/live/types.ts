@@ -31,7 +31,8 @@ export interface StepCommit {
 
 /** Server-side persistence for live games (Supabase in prod, memory in tests). All writes are service-role. */
 export interface LiveStore {
-  createLiveGame(state: GameState, createdBy: string): Promise<string>;
+  /** createdBy is null for guest games (games.created_by references auth.users). */
+  createLiveGame(state: GameState, createdBy: string | null): Promise<string>;
   loadLive(id: string): Promise<LiveGame | null>;
   /** Lease the next step at `version`; true = this caller may call the model. */
   claimStep(id: string, version: number, leaseMs: number): Promise<boolean>;
@@ -66,6 +67,13 @@ export interface Limits {
   /** Token-bucket sizes for POST /api/games (refilled over an hour). */
   createPerUserPerHour?: number;
   createPerIpPerHour?: number;
+  /** Guest play (no login): on unless GUEST_PLAY=0. Guests get cheap models only and their own smaller caps. */
+  guestsEnabled?: boolean;
+  /** Games per guest id per day, and per IP per day across all guests on it (cookie clearing doesn't reset it). */
+  guestGamesPerDay?: number;
+  guestGamesPerIpPerDay?: number;
+  /** Guests stop once total spend today reaches this; signed-in users can still use the rest of the daily budget. */
+  guestDailyBudgetUsd?: number;
 }
 
 export function limitsFromEnv(env: Record<string, string | undefined> = process.env): Limits {
@@ -79,5 +87,9 @@ export function limitsFromEnv(env: Record<string, string | undefined> = process.
     maxGamesPerUserPerDay: n(env.MAX_LIVE_GAMES_PER_USER_PER_DAY, 3),
     createPerUserPerHour: n(env.CREATE_PER_USER_PER_HOUR, 5),
     createPerIpPerHour: n(env.CREATE_PER_IP_PER_HOUR, 10),
+    guestsEnabled: env.GUEST_PLAY !== '0',
+    guestGamesPerDay: n(env.GUEST_GAMES_PER_DAY, 2),
+    guestGamesPerIpPerDay: n(env.GUEST_GAMES_PER_IP_PER_DAY, 4),
+    guestDailyBudgetUsd: n(env.GUEST_DAILY_BUDGET_USD, 1),
   };
 }

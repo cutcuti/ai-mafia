@@ -49,7 +49,7 @@ export class SupabaseLiveStore implements LiveStore {
     return data as T;
   }
 
-  async createLiveGame(state: GameState, createdBy: string) {
+  async createLiveGame(state: GameState, createdBy: string | null) {
     return this.rpc<string>('create_live_game', {
       p: {
         game: {

@@ -116,3 +116,19 @@ test('moderation blocklist', () => {
   assert.equal(moderate('you are so sus'), true);
   assert.equal(moderate('kys'), false);
 });
+
+test('a guest plays their own seat with the id from their cookie; another guest cannot', async () => {
+  const store = new MemoryLiveStore();
+  const guest = 'guest-0123456789abcdef0123456789abcdef';
+  const res = await createGameResponse(
+    { store, limits: { ...limits, guestsEnabled: true }, allowedModels: ['claude-haiku'], guestModels: ['claude-haiku'], now: () => new Date(), randomSeed: () => 9, newId: () => 'g9' },
+    new Request('http://x', { method: 'POST', body: JSON.stringify({ models: ['claude-haiku'], humanSeat: true }) }),
+    null,
+    'ip',
+    guest,
+  );
+  const id = (await res.json()).id as string;
+  await untilMyTurn(store, id);
+  assert.equal((await input(store, id, {}, { id: 'guest-ffffffffffffffffffffffffffffffff' } as SessionUser)).status, 403);
+  assert.notEqual((await input(store, id, {}, { id: guest } as SessionUser)).status, 403);
+});

@@ -4,6 +4,7 @@ import { PlayForm } from '@/components/play/PlayForm';
 import { SignIn } from '@/components/play/SignIn';
 import { SiteHeader } from '@/components/SiteHeader';
 import { authConfigured, getSessionUser } from '@/lib/auth';
+import { fixtureMode } from '@/lib/devmode';
 import { getLiveStore } from '@/lib/live/live-store';
 import { webModels } from '@/lib/live/models';
 import { limitsFromEnv } from '@/lib/live/types';
@@ -15,7 +16,8 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
   const { auth } = await searchParams;
   const user = await getSessionUser();
   const limits = limitsFromEnv();
-  let gamesLeft = 0;
+  const guest = !user && !!limits.guestsEnabled;
+  let gamesLeft: number | null = 0;
   let tired = false;
   if (user) {
     try {
@@ -25,6 +27,14 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
       tired = spent >= limits.dailyBudgetUsd;
     } catch {
       gamesLeft = 0;
+    }
+  } else if (guest) {
+    // a guest's own count lives in a rate-limit bucket; the server answers on Start if it's used up
+    gamesLeft = null;
+    try {
+      tired = (await getLiveStore().spendToday()) >= (limits.guestDailyBudgetUsd ?? 1);
+    } catch {
+      tired = false;
     }
   }
 
@@ -44,21 +54,34 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
         )}
 
         <section className="mt-8 rounded-3xl border border-line bg-panel p-5 sm:p-6">
-          {!authConfigured() ? (
+          {!authConfigured() && !(fixtureMode() && guest) ? (
             <p className="text-muted">Live games aren&apos;t available here. Watch a <Link href="/" className="underline">replay</Link> instead.</p>
-          ) : !user ? (
+          ) : !user && !guest ? (
             <div className="flex flex-col items-start gap-3">
               <p className="text-muted">Live games use real AI credit, so you&apos;ll need to sign in first. We only read your public GitHub profile.</p>
               <SignIn />
             </div>
           ) : tired ? (
-            <p className="text-lg">
-              😴 The AIs are tired for today: the daily budget is spent. Come back tomorrow, or{' '}
-              <Link href="/" className="underline">
-                watch a replay
-              </Link>
-              .
-            </p>
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-lg">
+                😴 The AIs are tired for today: {guest ? 'guest games are used up' : 'the daily budget is spent'}. Come back tomorrow, or{' '}
+                <Link href="/" className="underline">
+                  watch a replay
+                </Link>
+                .
+              </p>
+              {guest && <SignIn />}
+            </div>
+          ) : !user ? (
+            <>
+              <div className="mb-5 flex flex-col gap-3 border-2 border-line bg-bg p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-muted">
+                  <b className="text-fg">Playing as a guest</b>, no sign-up needed. Sign in with GitHub for the bigger models and more games a day.
+                </span>
+                <SignIn small />
+              </div>
+              <PlayForm models={webModels(process.env, { guest: true })} gamesLeft={null} />
+            </>
           ) : (
             <>
               <div className="mb-5 flex items-center justify-between gap-3 text-sm text-muted">
@@ -76,7 +99,8 @@ export default async function PlayPage({ searchParams }: { searchParams: Promise
           )}
         </section>
         <p className="mt-4 text-xs text-faint">
-          Limits: {limits.maxGamesPerUserPerDay} games per person per day, a ${limits.dailyBudgetUsd.toFixed(2)} daily budget across everyone, and each
+          Limits: {limits.guestsEnabled ? `${limits.guestGamesPerDay} games a day as a guest, ` : ''}
+          {limits.maxGamesPerUserPerDay} games per day signed in, a ${limits.dailyBudgetUsd.toFixed(2)} daily budget across everyone, and each
           game stops at ${limits.maxGameCostUsd.toFixed(2)}.
         </p>
       </main>

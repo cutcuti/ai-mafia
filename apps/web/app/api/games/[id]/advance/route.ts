@@ -1,7 +1,8 @@
 import { after } from 'next/server';
 import { createModelController, defaultProvider, dryRunProvider, getModel } from '@ai-mafia/agents';
 import { dryRunJudge, judgeFinishedGame, modelJudge } from '@/lib/live/judge';
-import { clientIp, getSessionUser } from '@/lib/auth';
+import { clientIp } from '@/lib/auth';
+import { viewerId } from '@/lib/guest';
 import { fixtureMode } from '@/lib/devmode';
 import { advanceResponse } from '@/lib/live/advance';
 import { getLiveStore } from '@/lib/live/live-store';
@@ -17,7 +18,7 @@ const mocked = () => fixtureMode() && process.env.MAFIA_DRY_RUN === '1';
 
 /** Auth is only needed for the seat view; skip the Supabase round trip otherwise. */
 async function callerFor(req: Request) {
-  return new URL(req.url).searchParams.get('view') === 'seat' ? { userId: (await getSessionUser())?.id } : {};
+  return new URL(req.url).searchParams.get('view') === 'seat' ? { userId: await viewerId() } : {};
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {

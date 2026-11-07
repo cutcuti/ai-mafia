@@ -59,3 +59,5 @@ One line each: date — decision — reason.
 2026-11-07 — GPT models route through OpenRouter (openai/gpt-5.4-*) — one OPENROUTER_API_KEY unlocks every non-Claude model; model ids (and so ratings history) are unchanged.
 2026-11-07 — Body text uses IBM Plex Mono instead of Pixelify Sans — user found pixel digits illegible (5 read as S); headings keep the pixel font.
 2026-11-07 — Claude Sonnet is web-allowed (≈$0.07 shared table, under the $0.25 game cap); Opus stays benchmark-only (≈$0.40 full table) — user asked for both.
+2026-11-07 — Guest play without login (BRD §9.5 asked for sign-in) — user wants LinkedIn visitors to play; guests get a random httpOnly cookie id, models ≤ $2/M output tokens only, 2 games/day per guest and 4/day per IP (rolling token buckets), and stop once today's spend reaches $1 of the $2 budget. GUEST_PLAY=0 turns it off.
+2026-11-07 — Guest games store created_by = null (column references auth.users) — avoids a migration; guest counts live in rate-limit buckets instead of the games table.

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Viewer } from '@/components/viewer/Viewer';
 import { modelName } from '@/lib/roster';
-import { getSessionUser } from '@/lib/auth';
+import { viewerId } from '@/lib/guest';
 import { getStore } from '@/lib/store';
 import { authorizeView, eventsForViewer, gameMeta, highlightsFor } from '@/lib/views';
 
@@ -16,8 +16,8 @@ async function load(id: string) {
   if (!game) return null;
   // The page ships the PUBLIC view — or, for this game's human player, their own SEAT view (I3). Auth is only
   // checked for games with a human seat, so replays never touch it.
-  const user = game.hasHuman ? await getSessionUser() : null;
-  const seat = user ? authorizeView(game, 'seat', { userId: user.id }) : null;
+  const me = game.hasHuman ? await viewerId() : undefined;
+  const seat = me ? authorizeView(game, 'seat', { userId: me }) : null;
   const d = seat?.ok ? seat : authorizeView(game, 'public', {});
   if (!d.ok) return null;
   const [events, highlights] = await Promise.all([store.getEvents(id), game.status === 'finished' ? store.getHighlights(id) : []]);
