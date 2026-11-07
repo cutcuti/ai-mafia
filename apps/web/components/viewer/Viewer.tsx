@@ -8,7 +8,7 @@ import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timeli
 import type { GameMeta } from '@/lib/views';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { BeatRow } from './BeatRow';
-import { Controls, type Speed } from './Controls';
+import { Controls, SPEEDS, type Speed } from './Controls';
 import { EndScreen } from './EndScreen';
 import { GamePanel } from './GamePanel';
 import { SeatRail } from './SeatRail';
@@ -27,6 +27,7 @@ export interface ViewerProps {
 }
 
 const SPECTATOR_PREF = 'ai-mafia:spectator';
+const SPEED_PREF = 'ai-mafia:speed';
 
 function readPref(): boolean {
   try {
@@ -131,7 +132,23 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
   // live games open caught up (everything so far), replays from the start
   const [count, setCount] = useState(() => (initialSeq !== undefined ? indexForSeq(beats, initialSeq) : startsLive ? beats.length : 1));
   const [playing, setPlaying] = useState(initialSeq === undefined);
-  const [speed, setSpeed] = useState<Speed>(1);
+  const [speed, setSpeedState] = useState<Speed>(1);
+  useEffect(() => {
+    try {
+      const v = Number(window.localStorage.getItem(SPEED_PREF));
+      if ((SPEEDS as readonly number[]).includes(v) && v !== Infinity) setSpeedState(v as Speed);
+    } catch {
+      // storage blocked: default speed
+    }
+  }, []);
+  const setSpeed = useCallback((s: Speed) => {
+    setSpeedState(s);
+    try {
+      if (s !== Infinity) window.localStorage.setItem(SPEED_PREF, String(s));
+    } catch {
+      // fine: just not remembered
+    }
+  }, []);
   const total = beats.length;
   const state = useMemo(() => stateAt(beats, seatIds, count), [beats, seatIds, count]);
 
@@ -146,9 +163,9 @@ export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'pu
       setCount(total);
       return;
     }
-    const t = setTimeout(() => setCount((c) => Math.min(total, c + 1)), beatDelayMs(beats[Math.max(0, count - 1)], speed));
+    const t = setTimeout(() => setCount((c) => Math.min(total, c + 1)), beatDelayMs(beats[Math.max(0, count - 1)], speed, spectator));
     return () => clearTimeout(t);
-  }, [playing, count, total, speed, beats]);
+  }, [playing, count, total, speed, beats, spectator]);
 
   const seek = useCallback((n: number) => setCount(Math.max(0, Math.min(total, n))), [total]);
   const step = useCallback(

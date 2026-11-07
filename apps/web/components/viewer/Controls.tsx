@@ -2,9 +2,10 @@
 
 import type { Marker } from '@/lib/timeline';
 
-export const SPEEDS = [1, 2, 4, Infinity] as const;
+export const SPEEDS = [0.25, 0.5, 1, 2, 4, Infinity] as const;
 export type Speed = (typeof SPEEDS)[number];
 const speedLabel = (s: Speed) => (s === Infinity ? 'instant' : `${s}×`);
+const shortLabel = (s: Speed) => (s === Infinity ? '⏭' : s === 0.25 ? '¼×' : s === 0.5 ? '½×' : `${s}×`);
 const MARK: Record<Marker['kind'], string> = { night: '🌙', day: '☀️', vote: '🗳️', death: '💀' };
 
 export interface ControlsProps {
@@ -81,7 +82,7 @@ export function Controls({ count, total, playing, speed, markers, onPlayPause, o
           className="shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-semibold sm:hidden"
           aria-label={`Speed ${speedLabel(speed)}, tap for ${speedLabel(nextSpeed)}`}
         >
-          {speedLabel(speed)}
+          {shortLabel(speed)}
         </button>
         {onPanel && (
           <button type="button" onClick={onPanel} className="relative shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-semibold lg:hidden" aria-label="Open votes panel">
@@ -99,9 +100,10 @@ export function Controls({ count, total, playing, speed, markers, onPlayPause, o
               role="radio"
               aria-checked={speed === s}
               onClick={() => onSpeed(s)}
+              aria-label={speedLabel(s)}
               className={`rounded-full px-2 py-0.5 text-xs font-semibold sm:px-2.5 ${speed === s ? 'bg-fg text-ink' : 'text-muted hover:text-fg'}`}
             >
-              {speedLabel(s)}
+              {shortLabel(s)}
             </button>
           ))}
         </div>

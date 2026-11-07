@@ -113,7 +113,8 @@ export function stateAt(beats: readonly Beat[], seatIds: readonly string[], coun
 }
 
 /** How long a beat stays on screen at 1× before the next one (reading time for speech). */
-export function beatDelayMs(b: Beat, speed: number): number {
+/** How long a beat stays on screen at `speed`. With `withThought` (spectator mode) the private thought's reading time is added. */
+export function beatDelayMs(b: Beat, speed: number, withThought = false): number {
   const base =
     b.kind === 'speech' || b.kind === 'mafia_chat' || b.kind === 'notes'
       ? 900 + Math.min(b.event.text.length, 280) * 22
@@ -122,7 +123,8 @@ export function beatDelayMs(b: Beat, speed: number): number {
         : b.kind === 'vote'
           ? 700
           : 1000;
-  return speed === Infinity ? 0 : base / speed;
+  const thought = withThought && b.thought ? 600 + Math.min(b.thought.text.length, 400) * 18 : 0;
+  return speed === Infinity ? 0 : (base + thought) / speed;
 }
 
 /** Index of the first beat at or after `seq` (for ?t= deep links). */

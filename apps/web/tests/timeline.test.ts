@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createGame, createRng, drive, makeConfig, viewerCanSee, type Responder } from '@ai-mafia/engine';
@@ -75,4 +76,15 @@ test('lie heuristic flags mafia fake claims and mafia accusing town only', async
     if (actorRole !== 'mafia') assert.equal(isLikelyLie(b, roles), false);
   }
   assert.ok(beats.some((b) => isLikelyLie(b, roles)), 'some mafia lie expected in a random game');
+});
+
+test('slow speeds stretch delays; spectator mode adds reading time for the thought', () => {
+  const beats = buildTimeline(
+    (JSON.parse(readFileSync(new URL('../e2e/fixtures/demo-s1.json', import.meta.url), 'utf8')) as { events: import('@ai-mafia/engine').GameEvent[] }).events,
+  );
+  const b = beats.find((x) => x.kind === 'speech' && x.thought)!;
+  assert.equal(beatDelayMs(b, 0.25), beatDelayMs(b, 1) * 4);
+  assert.ok(beatDelayMs(b, 1, true) > beatDelayMs(b, 1) + 600, 'thought adds reading time');
+  const noThought = beats.find((x) => !x.thought)!;
+  assert.equal(beatDelayMs(noThought, 1, true), beatDelayMs(noThought, 1));
 });
