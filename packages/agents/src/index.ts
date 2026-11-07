@@ -12,3 +12,4 @@ export * from './models.config.ts';
 export * from './registry.ts';
 export * from './factory.ts';
 export * from './dryrun.ts';
+export * from './judge.ts';
