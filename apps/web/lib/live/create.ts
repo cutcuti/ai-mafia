@@ -35,7 +35,7 @@ export async function createGameResponse(deps: CreateDeps, req: Request, user: S
   } catch {
     return json({ error: 'Body must be JSON.' }, 400);
   }
-  const b = (body && typeof body === 'object' ? body : {}) as { preset?: unknown; models?: unknown };
+  const b = (body && typeof body === 'object' ? body : {}) as { preset?: unknown; models?: unknown; humanSeat?: unknown };
   const preset = typeof b.preset === 'string' ? b.preset : 'classic6';
   if (!isPreset(preset)) return json({ error: `preset must be one of ${PRESET_NAMES.join(', ')}` }, 400);
   const models = Array.isArray(b.models) ? [...new Set(b.models.filter((m): m is string => typeof m === 'string'))] : [];
@@ -52,6 +52,8 @@ export async function createGameResponse(deps: CreateDeps, req: Request, user: S
   const probe = createGame(makeConfig({ seed, preset }));
   const pick = createRng((seed ^ 0x9e3779b9) >>> 0); // independent of the game's own RNG stream
   const controllers: Controller[] = probe.seats.map(() => ({ kind: 'model', modelId: pick.pick(models) }));
+  // "you vs the AIs": one random seat is the player's; AIs are not told which (BRD §10.4)
+  if (b.humanSeat === true) controllers[Math.floor(pick.next() * controllers.length)] = { kind: 'human', userId: user.id };
   const state = createGame(
     makeConfig({ seed, preset, controllers, gameId: `live-${deps.newId()}`, createdAt: deps.now().toISOString() }),
   );

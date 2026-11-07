@@ -61,7 +61,7 @@ export class SupabaseLiveStore implements LiveStore {
           seed: state.config.seed,
           prompt_version: PROMPT_VERSION,
           state,
-          has_human: false,
+          has_human: state.seats.some((x) => x.controller.kind === 'human'),
           created_by: createdBy,
         },
         seats: state.seats.map((s) => ({ seat_id: s.id, name: s.name, role: s.role, persona_id: s.persona.id, controller: s.controller })),

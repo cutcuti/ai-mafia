@@ -32,7 +32,7 @@ export class MemoryLiveStore implements LiveStore {
     g.version++;
     g.costUsd += c.costUsd;
     this.spent += c.costUsd;
-    g.status = c.state.status === 'finished' ? 'finished' : 'running';
+    g.status = c.state.status === 'finished' ? 'finished' : c.state.status === 'awaiting_input' ? 'awaiting_input' : 'running';
     g.leaseUntil = 0;
     return true;
   }
