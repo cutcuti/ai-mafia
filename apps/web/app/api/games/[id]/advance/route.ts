@@ -1,5 +1,5 @@
 import { createModelController, dryRunProvider } from '@ai-mafia/agents';
-import { clientIp } from '@/lib/auth';
+import { clientIp, getSessionUser } from '@/lib/auth';
 import { fixtureMode } from '@/lib/devmode';
 import { advanceResponse } from '@/lib/live/advance';
 import { getLiveStore } from '@/lib/live/live-store';
@@ -12,6 +12,11 @@ export const maxDuration = 60;
 
 // offline dev/e2e only: mocked models, no API calls (requires fixture mode, so never in production)
 const mocked = () => fixtureMode() && process.env.MAFIA_DRY_RUN === '1';
+
+/** Auth is only needed for the seat view; skip the Supabase round trip otherwise. */
+async function callerFor(req: Request) {
+  return new URL(req.url).searchParams.get('view') === 'seat' ? { userId: (await getSessionUser())?.id } : {};
+}
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -30,7 +35,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     },
     id,
     new URL(req.url),
-    {}, // human seats + auth for seat view arrive in M7
+    await callerFor(req),
     await clientIp(),
   );
 }

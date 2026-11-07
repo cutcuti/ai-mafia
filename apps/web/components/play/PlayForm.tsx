@@ -15,6 +15,7 @@ export function PlayForm({ models, gamesLeft }: { models: { id: string; displayN
   const [preset, setPreset] = useState('classic6');
   const [picked, setPicked] = useState<string[]>(models.slice(0, 1).map((m) => m.id));
   const [busy, setBusy] = useState(false);
+  const [human, setHuman] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const toggle = (id: string) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? p : [...p, id]));
@@ -23,7 +24,7 @@ export function PlayForm({ models, gamesLeft }: { models: { id: string; displayN
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch('/api/games', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ preset, models: picked }) });
+      const res = await fetch('/api/games', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ preset, models: picked, humanSeat: human }) });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? 'Could not start a game.');
       router.push(`/g/${body.id}`);
@@ -70,6 +71,14 @@ export function PlayForm({ models, gamesLeft }: { models: { id: string; displayN
         )}
         <p className="mt-2 text-xs text-muted">Each seat gets one of the picked models at random. With one model, it plays itself.</p>
       </fieldset>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-line bg-panel p-3">
+        <input type="checkbox" checked={human} onChange={(e) => setHuman(e.target.checked)} className="mt-1 accent-[var(--color-neon-cyan)]" />
+        <span>
+          <span className="font-semibold">Play yourself</span>
+          <span className="block text-sm text-muted">Take one seat against the AIs. They don&apos;t know which one is you. Thoughts stay hidden until the game ends.</span>
+        </span>
+      </label>
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" disabled={busy || picked.length === 0 || gamesLeft <= 0} className="rounded-full bg-neon-cyan px-6 py-2.5 font-semibold text-ink disabled:opacity-50">

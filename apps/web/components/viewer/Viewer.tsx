@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { GameEvent } from '@ai-mafia/engine';
+import type { GameEvent, InputRequest } from '@ai-mafia/engine';
 import { modelName, rosterFrom } from '@/lib/roster';
 import { beatDelayMs, buildTimeline, indexForSeq, isLikelyLie, markers as timelineMarkers, stateAt } from '@/lib/timeline';
 import type { GameMeta } from '@/lib/views';
@@ -10,6 +10,7 @@ import { Controls, type Speed } from './Controls';
 import { EndScreen } from './EndScreen';
 import { GamePanel } from './GamePanel';
 import { SeatRail } from './SeatRail';
+import { YourTurn } from './YourTurn';
 
 export interface ViewerProps {
   meta: GameMeta;
@@ -17,6 +18,8 @@ export interface ViewerProps {
   events: GameEvent[];
   /** ?t=<seq> deep link: open paused at that moment. */
   initialSeq?: number;
+  /** 'seat' when the viewer is this game's human player (their own seat's view, server-filtered). */
+  baseView?: 'public' | 'seat';
 }
 
 const SPECTATOR_PREF = 'ai-mafia:spectator';
@@ -45,7 +48,7 @@ const appendNew = (have: GameEvent[], incoming: GameEvent[]) => {
   return add.length ? [...have, ...add] : have;
 };
 
-export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps) {
+export function Viewer({ meta, events: initialEvents, initialSeq, baseView = 'public' }: ViewerProps) {
   // ── live games (BRD §9.4): this browser drives /advance while it's watching and caught up ──
   const startsLive = meta.status === 'running' || meta.status === 'awaiting_input';
   const [liveStatus, setLiveStatus] = useState<string>(meta.status);
@@ -53,6 +56,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
   const [events, setEvents] = useState<GameEvent[]>(initialEvents);
   const [waiting, setWaiting] = useState<WaitingOn>(null);
   const [liveError, setLiveError] = useState<string | null>(null);
+  const [yourTurn, setYourTurn] = useState<InputRequest | null>(null);
 
   // ── spectator mode: thoughts + hidden events, fetched from the server only when allowed (I3, I8) ──
   const [spectator, setSpectator] = useState(false);
@@ -178,7 +182,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
   }, []);
 
   // ── live driver: one /advance at a time, only when caught up, visible and playing ──
-  const view = spectator ? 'spectator' : 'public';
+  const view = spectator ? 'spectator' : baseView;
   const activeLast = activeEvents.at(-1)?.seq ?? -1;
   const lastRef = useRef(activeLast);
   lastRef.current = activeLast;
@@ -202,7 +206,8 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
   );
 
   useEffect(() => {
-    if (!live || liveStatus !== 'running' || !caughtUp || !visible || !playing) return;
+    const polling = liveStatus === 'running' || (liveStatus === 'awaiting_input' && !yourTurn);
+    if (!live || !polling || !caughtUp || !visible || !playing) return;
     const ctrl = new AbortController();
     let retry: ReturnType<typeof setTimeout> | undefined;
     (async () => {
@@ -213,8 +218,10 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
         setLiveError(null);
         ingest(view, body.events as GameEvent[]);
         setWaiting(body.waitingOn ?? null);
+        setYourTurn(body.yourTurn ?? null);
         if (body.status !== 'busy') setLiveStatus(body.status);
         // someone else is mid-turn, or nothing new: look again shortly (a Realtime ping may beat us to it)
+        if (body.yourTurn) return; // our move: wait for the player
         if (body.status === 'busy' || !(body.events as GameEvent[]).length) retry = setTimeout(() => setTick((t) => t + 1), 1500);
       } catch (e) {
         if (ctrl.signal.aborted) return;
@@ -226,7 +233,22 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
       ctrl.abort();
       clearTimeout(retry);
     };
-  }, [live, liveStatus, caughtUp, visible, playing, view, meta.id, ingest, activeLast, tick]);
+  }, [live, liveStatus, yourTurn, caughtUp, visible, playing, view, meta.id, ingest, activeLast, tick]);
+
+  const submitMove = useCallback(
+    async (body: Record<string, unknown>) => {
+      const r = await fetch(`/api/games/${meta.id}/input`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const out = await r.json();
+      if (!r.ok) return (out.error as string) ?? 'Could not send your move.';
+      ingest(view, out.events as GameEvent[]);
+      setYourTurn(null);
+      setLiveStatus(out.status === 'finished' ? 'finished' : 'running');
+      setPlaying(true);
+      setTick((t) => t + 1);
+      return null;
+    },
+    [meta.id, ingest, view],
+  );
 
   const spectatorRef = useRef(spectator);
   spectatorRef.current = spectator;
@@ -381,7 +403,7 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
                 onShare={() => share(b.event.seq)}
               />
             ))}
-            {live && caughtUp && (
+            {live && caughtUp && !yourTurn && (
               <p className="flex items-center gap-2 py-3 pl-12 text-sm text-muted" aria-live="polite">
                 <span className="inline-flex gap-1" aria-hidden>
                   <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted [animation-delay:-0.3s]" />
@@ -443,6 +465,8 @@ export function Viewer({ meta, events: initialEvents, initialSeq }: ViewerProps)
           }}
         />
       )}
+
+      {yourTurn && caughtUp && <YourTurn key={yourTurn.id} req={yourTurn} seats={seatMap} onSubmit={submitMove} />}
 
       <Controls
         count={count}

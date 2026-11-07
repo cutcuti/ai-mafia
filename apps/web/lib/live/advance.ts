@@ -2,6 +2,7 @@ import { applyResponse, contextFor, nextRequest, type GameState, type InputReque
 import type { AgentCall } from '@ai-mafia/agents';
 import type { StoredGame } from '../types';
 import { authorizeView, eventsForViewer, spectatorAllowed, type Caller } from '../views';
+import type { Viewer } from '@ai-mafia/engine';
 import type { Limits, LiveGame, LiveStore } from './types';
 
 export interface AdvanceDeps {
@@ -26,6 +27,13 @@ export function waitingOn(state: GameState): { kind: 'speak' | 'vote'; seatId: s
   if (req.kind === 'speak' && req.channel === 'public') return { kind: 'speak', seatId: req.seatId };
   if (req.kind === 'choose' && req.action === 'vote') return { kind: 'vote', seatId: req.seatId };
   return state.phase === 'night' ? { kind: 'night' } : null;
+}
+
+/** The pending request, only for the seat it belongs to (the human player). Never reveals anything they can't see. */
+export function yourTurn(state: GameState, viewer: Viewer): InputRequest | null {
+  if (viewer.kind !== 'seat' || state.status === 'finished') return null;
+  const req = nextRequest(state);
+  return req && req.seatId === viewer.seat.id ? req : null;
 }
 
 /** The persisted game as the view rules expect it. */
@@ -73,7 +81,15 @@ export async function advanceResponse(deps: AdvanceDeps, id: string, url: URL, c
   if (after !== undefined && !Number.isInteger(after)) return json({ error: 'after must be an integer seq' }, 400);
 
   const reply = (state: GameState, status: string, extra: Record<string, unknown> = {}) =>
-    json({ status, version: extra.version ?? g.version, events: eventsForViewer(state.events, d.viewer, after), waitingOn: waitingOn(state), spectatorAvailable: spectatorAllowed(stored), ...extra });
+    json({
+      status,
+      version: extra.version ?? g.version,
+      events: eventsForViewer(state.events, d.viewer, after),
+      waitingOn: waitingOn(state),
+      yourTurn: yourTurn(state, d.viewer),
+      spectatorAvailable: spectatorAllowed(stored),
+      ...extra,
+    });
 
   if (g.status !== 'running') return reply(g.state, g.status);
 
