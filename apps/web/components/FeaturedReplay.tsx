@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/Avatar';
@@ -53,17 +53,14 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
             <span className="truncate pl-3 text-muted">{title}</span>
           </div>
           <div className="flex h-[440px] flex-col justify-end gap-2 overflow-hidden px-3 pb-3" aria-live="off">
-            <AnimatePresence initial={false} mode="popLayout">
               {shown.map((l) => {
                 if (l.kind !== 'speech') {
                   return (
                     <motion.p
                       key={l.seq}
-                      layout
                       initial={reduce ? false : { opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      className={`text-center text-xs ${l.kind === 'banner' ? 'mx-auto rounded-full border border-line px-3 py-1 font-display font-semibold' : 'text-muted'}`}
+                      className={`text-center text-xs ${l.kind === 'banner' ? 'mx-auto max-w-full truncate border-2 border-line bg-panel px-2.5 py-1 font-semibold uppercase tracking-wide' : 'text-muted'}`}
                     >
                       {l.text}
                     </motion.p>
@@ -73,10 +70,8 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
                 return (
                   <motion.div
                     key={l.seq}
-                    layout
                     initial={reduce ? false : { opacity: 0, y: 14, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     className="flex gap-2"
                   >
@@ -90,7 +85,6 @@ export function FeaturedReplay({ gameId, title, seats, lines }: FeaturedReplayPr
                   </motion.div>
                 );
               })}
-            </AnimatePresence>
             {last?.kind === 'speech' && !reduce && (
               <span className="flex gap-1 pl-9 pt-1" aria-hidden>
                 <span className="h-1 w-1 animate-bounce rounded-full bg-muted [animation-delay:-0.3s]" />

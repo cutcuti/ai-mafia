@@ -11,3 +11,18 @@ test('mobile: no horizontal scroll, votes open as a bottom sheet', async ({ page
   await page.keyboard.press('Escape');
   await expect(sheet).toHaveCount(0);
 });
+
+test('mobile: no page is wider than a small phone (320px), even with long game titles', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  for (const path of ['/', '/leaderboard', '/play', '/about', '/models/claude-haiku', '/g/demo-s1?t=60']) {
+    await page.goto(path);
+    if (path === '/') {
+      // the longest real titles have six model names
+      await page.locator('[aria-labelledby=recent] li a span').first().evaluate((el) => {
+        el.textContent = 'Claude Haiku · Claude Opus · Gemini Flash · GPT mini · Llama 3.3 70B · Qwen3 235B';
+      });
+    }
+    const { sw, vw } = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, vw: document.documentElement.clientWidth }));
+    expect(sw, `${path} overflows`).toBeLessThanOrEqual(vw);
+  }
+});

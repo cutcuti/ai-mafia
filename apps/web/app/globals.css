@@ -294,3 +294,18 @@ input[type="range"]::-moz-range-thumb {
 blockquote {
   font-style: normal;
 }
+
+/* Grid children default to min-width:auto, so one long unbreakable line (e.g. six model names)
+   could stretch the whole page past the phone screen. Let them shrink; long text wraps or truncates instead. */
+.grid > * {
+  min-width: 0;
+}
+
+/* iOS zooms the page in when a focused field is under 16px; keep fields at 16px on phones */
+@media (max-width: 640px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

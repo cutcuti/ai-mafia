@@ -78,11 +78,11 @@ export default async function Home() {
         {games.length === 0 ? (
           <p className="text-muted">No games yet.</p>
         ) : (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {games.map((g) => (
               <li key={g.id}>
                 <Link href={`/g/${g.id}`} className="flex flex-col gap-1 rounded-2xl border border-line bg-panel p-4 transition-colors hover:bg-panel-2">
-                  <span className="truncate font-semibold">{g.models.map(modelName).join(' vs ')}</span>
+                  <span className="line-clamp-2 break-words font-semibold">{g.models.map(modelName).join(' · ')}</span>
                   <span className="text-sm text-muted">
                     {g.outcome ? OUTCOME[g.outcome] : 'Live'} · {g.preset} · {g.format ?? g.mode}
                   </span>
