@@ -24,11 +24,18 @@ async function load(id: string) {
   return { meta: gameMeta(game, d.viewer), events: eventsForViewer(events, d.viewer), highlights: highlightsFor(game, highlights), baseView: d.view === 'seat' ? ('seat' as const) : ('public' as const) };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const data = await load((await params).id);
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const id = (await params).id;
+  const data = await load(id);
   if (!data) return { title: 'Game not found' };
   const title = `${data.meta.models.map(modelName).join(' vs ')} — ${data.meta.outcome ? `${data.meta.outcome} wins` : 'live'}`;
-  return { title, description: 'Six AIs play Mafia. Read their private thoughts while they lie to each other.' };
+  const description = 'Six AIs play Mafia. Read their private thoughts while they lie to each other.';
+  // ?t=<seq> on a public speech → that message's card ("share this moment"); otherwise the game card
+  const t = Number((await searchParams).t);
+  const moment = Number.isInteger(t) ? data.events.find((e) => e.seq === t && e.type === 'speech') : undefined;
+  const image = moment ? `/api/og/moment/${id}/${t}` : `/api/og/game/${id}`;
+  const og = { title, description, images: [{ url: image, width: 1200, height: 630 }] };
+  return { title, description, openGraph: og, twitter: { card: 'summary_large_image', ...og } };
 }
 
 export default async function GamePage({ params, searchParams }: Props) {

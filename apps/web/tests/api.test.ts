@@ -178,3 +178,33 @@ test('list: finished games only, newest first, cursor pagination, model filter',
   assert.ok(!JSON.stringify(p1.body).includes('"role"'), 'cards never carry roles');
   assert.equal((await listGamesResponse(store, url('/api/games?cursor=yesterday'))).status, 400);
 });
+
+test('M8 share cards: public info only — no hidden roles, models or awards before the end; no thought/mafia-chat cards', async () => {
+  const { ogGame, ogMoment } = await import('../lib/og');
+  const { fixtureHighlights } = await import('../lib/fixture-store');
+  const store = new FixtureStore();
+  const live = await makeGame('live', 4, { stopAfter: 14 });
+  store.add(live.game, live.events, fixtureHighlights({ ...live.game, status: 'finished' }, live.events)); // awards present but game unfinished
+  assert.equal(live.game.status, 'running');
+  const g = (await ogGame(store, 'live'))!;
+  assert.equal(g.outcome, null);
+  assert.ok(g.players.every((p) => p.mafia === null && p.model === null));
+  assert.equal(g.award, null);
+  const hidden = live.events.filter((e) => e.visibility.kind !== 'public');
+  assert.ok(hidden.length > 0);
+  for (const e of hidden) assert.equal(await ogMoment(store, 'live', e.seq), null, `${e.type} must not get a card`);
+  const speech = live.events.find((e) => e.type === 'speech')!;
+  const m = (await ogMoment(store, 'live', speech.seq))!;
+  assert.equal(m.text, speech.text);
+  assert.equal(m.model, null);
+  assert.ok(!JSON.stringify(m).includes('SECRET THOUGHT'));
+
+  const done = await makeGame('done', 5);
+  store.add(done.game, done.events, fixtureHighlights(done.game, done.events));
+  const d = (await ogGame(store, 'done'))!;
+  assert.ok(d.outcome);
+  assert.equal(d.players.filter((p) => p.mafia).length, 2);
+  assert.ok(d.award);
+  assert.equal(await ogMoment(store, 'done', 99999), null);
+  assert.equal(await ogGame(store, 'nope'), null);
+});
