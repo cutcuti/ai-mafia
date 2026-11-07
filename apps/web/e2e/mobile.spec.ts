@@ -26,3 +26,13 @@ test('mobile: no page is wider than a small phone (320px), even with long game t
     expect(sw, `${path} overflows`).toBeLessThanOrEqual(vw);
   }
 });
+
+test('mobile: top bar fits without scrolling; Menu opens the links', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/leaderboard');
+  const bar = await page.locator('header > div').first().evaluate((el) => ({ sw: el.scrollWidth, cw: el.clientWidth }));
+  expect(bar.sw).toBeLessThanOrEqual(bar.cw);
+  await page.getByRole('button', { name: 'Menu' }).click();
+  await page.locator('#mobile-menu').getByRole('link', { name: 'Play live' }).click();
+  await expect(page).toHaveURL(/\/play$/);
+});
